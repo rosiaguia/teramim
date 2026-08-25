@@ -119,6 +119,7 @@ export default function Landing() {
         <div className="container">
           <h2 className="section-title center">O que muda quando você treina paz</h2>
           <p className="section-sub center">Não é promessa mágica. É método, ciência e constância.</p>
+          <p className="benefits-intro">Eu sei que você quer ser mais feliz, mas a felicidade é somativa de momentos de paz. É isso que o P.A.R.E® te proporciona:</p>
           <div className="benefits-grid">
             {BENEFITS.map((b, i) => (
               <div key={i} className="benefit-card card fade-up" style={{ animationDelay: `${i * 0.05}s` }}>
