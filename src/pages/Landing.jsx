@@ -50,11 +50,9 @@ export default function Landing() {
             <h1 className="hero-title" style={{ whiteSpace: 'pre-line' }}>{l.heroTitle}</h1>
             <p className="hero-sub">{l.heroSub}</p>
             <div className="hero-cta">
-              <button type="button" className="btn btn-lime btn-lg" onClick={() => document.getElementById('como-voltar')?.scrollIntoView({ behavior: 'smooth' })}>
-                COMO voltar para mim ↓
-              </button>
-              <Link to="/como-funciona" className="btn btn-ghost btn-lg">Ver como funciona</Link>
+              <Link to="/como-funciona" className="btn btn-lime btn-lg">Ver como funciona</Link>
             </div>
+            <p className="hero-scroll-hint">COMO voltar para mim <span className="scroll-arrow">↓</span></p>
             <p className="hero-note">Feito para mulheres 40+ que querem recuperar prazer de viver, vitalidade e viver em paz.</p>
           </div>
         </div>
