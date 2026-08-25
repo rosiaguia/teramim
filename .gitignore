@@ -1,0 +1,20 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+
+# Dados locais / segredos (NUNCA commitar)
+server/ai-config.json
+server/admin-config.json
+server/checkout-config.json
+server/content.json
+server/audio/
+server/logo/
+.env
+deploy/.env
+deploy/data/
+
+# Logs e sistema
+*.log
+.DS_Store

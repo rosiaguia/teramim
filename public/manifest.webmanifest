@@ -1,0 +1,25 @@
+{
+  "id": "pare-teramim",
+  "name": "P.A.R.E® — Paz não é evento, paz é treino",
+  "short_name": "P.A.R.E®",
+  "description": "Metodologia de regulação emocional para mulheres, criada por Rosi Aguiar. Sua avaliação emocional, ritual diário, processo e respiração consciente.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "background_color": "#F3EDE2",
+  "theme_color": "#7A8B6F",
+  "categories": ["health", "lifestyle", "wellness"],
+  "icons": [
+    { "src": "/icon-64.png", "sizes": "64x64", "type": "image/png" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "screenshots": [
+    { "src": "/screenshot-mobile.png", "sizes": "720x1280", "type": "image/png", "form_factor": "narrow", "label": "Tela inicial do app" },
+    { "src": "/screenshot-desktop.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide", "label": "Página inicial do P.A.R.E." }
+  ]
+}
