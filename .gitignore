@@ -10,6 +10,7 @@ server/admin-config.json
 server/checkout-config.json
 server/content.json
 server/access-registry.json
+server/webhook-log.json
 server/audio/
 server/logo/
 .env

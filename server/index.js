@@ -23,6 +23,7 @@ const AI_CONFIG_FILE = path.join(DATA_DIR, 'ai-config.json')
 const ADMIN_CONFIG_FILE = path.join(DATA_DIR, 'admin-config.json')
 const CHECKOUT_CONFIG_FILE = path.join(DATA_DIR, 'checkout-config.json')
 const ACCESS_FILE = path.join(DATA_DIR, 'access-registry.json')
+const WEBHOOK_LOG_FILE = path.join(DATA_DIR, 'webhook-log.json')
 const KIWIFY_WEBHOOK_SECRET = process.env.KIWIFY_WEBHOOK_SECRET || ''
 
 function readAccessRegistry() {
@@ -40,6 +41,20 @@ function writeAccessRegistry(reg) {
     fs.writeFileSync(ACCESS_FILE, JSON.stringify(reg, null, 2))
   } catch (e) {
     console.error('access registry save error', e.message)
+  }
+}
+
+function logKiwifyHit(entry) {
+  try {
+    const raw = fs.existsSync(WEBHOOK_LOG_FILE) ? fs.readFileSync(WEBHOOK_LOG_FILE, 'utf8') : '[]'
+    let arr = []
+    try { arr = JSON.parse(raw) } catch (e) { arr = [] }
+    if (!Array.isArray(arr)) arr = []
+    arr.push({ at: new Date().toISOString(), ...entry })
+    if (arr.length > 100) arr = arr.slice(-100)
+    fs.writeFileSync(WEBHOOK_LOG_FILE, JSON.stringify(arr, null, 2))
+  } catch (e) {
+    console.error('webhook log save error', e.message)
   }
 }
 
@@ -172,14 +187,32 @@ app.get('/api/kiwify/webhook', (req, res) => {
   res.json({ ok: true, message: 'Webhook ativo. Aguardando avisos da Kiwify.' })
 })
 
-app.post('/api/kiwify/webhook', (req, res) => {
-  if (!verifyKiwifySignature(req, req.rawBody || Buffer.from(JSON.stringify(req.body || {})))) {
-    return res.status(401).json({ error: 'Assinatura inválida' })
+app.get('/api/kiwify/diag', (req, res) => {
+  const { pin } = req.query || {}
+  if (pin !== getAdminPin()) {
+    return res.status(401).json({ error: 'PIN inválido' })
   }
+  let arr = []
+  try {
+    if (fs.existsSync(WEBHOOK_LOG_FILE)) {
+      arr = JSON.parse(fs.readFileSync(WEBHOOK_LOG_FILE, 'utf8'))
+    }
+  } catch (e) { arr = [] }
+  res.json({ entries: Array.isArray(arr) ? arr : [], secretConfigured: Boolean(KIWIFY_WEBHOOK_SECRET) })
+})
+
+app.post('/api/kiwify/webhook', (req, res) => {
   const body = req.body || {}
+  const sig = req.headers['x-webhook-signature'] || ''
   const event = String(body.event || '')
   const data = body.data || body
   const email = kiwifyEmailFromData(data)
+
+  const okSig = verifyKiwifySignature(req, req.rawBody || Buffer.from(JSON.stringify(body)))
+  logKiwifyHit({ event, email: email || '', sig: sig ? (sig.slice(0, 12) + '...') : '(sem assinatura)', sigOk: okSig, keys: Object.keys(body).slice(0, 10) })
+  if (!okSig) {
+    return res.status(401).json({ error: 'Assinatura inválida' })
+  }
   const product = kiwifyProductName(data)
   const plan = body.subscription ? 'mensal' : (product ? product : 'mensal')
 
