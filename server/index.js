@@ -89,10 +89,9 @@ function verifyKiwifySignature(req, rawBody) {
   if (!sig) return false
   if (sig === KIWIFY_WEBHOOK_SECRET) return true
   try {
-    const hmac = crypto.createHmac('sha256', KIWIFY_WEBHOOK_SECRET).update(rawBody).digest()
-    const hex = hmac.toString('hex')
-    const base64 = hmac.toString('base64')
-    return sig === hex || sig === base64
+    const hmac1 = crypto.createHmac('sha1', KIWIFY_WEBHOOK_SECRET).update(rawBody).digest('hex')
+    const hmac256 = crypto.createHmac('sha256', KIWIFY_WEBHOOK_SECRET).update(rawBody).digest()
+    return sig === hmac1 || sig === hmac256.toString('hex') || sig === hmac256.toString('base64')
   } catch (e) {
     return false
   }
