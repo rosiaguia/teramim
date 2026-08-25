@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getAllUsers, getAccesses, getSubscriptions, getCheckoutUrl, setCheckoutUrl, setAdminPin, getAdminPin, updateCurrentUser } from '../engine/store.js'
-import { fetchConfig, saveAiConfig, saveCheckoutUrl, loginAdmin, changeAdminPin } from '../api/client.js'
+import { fetchConfig, saveAiConfig, saveCheckoutUrl, loginAdmin, changeAdminPin, fetchSubscribers } from '../api/client.js'
 import AudioUpload from '../components/AudioUpload.jsx'
 import LogoUpload from '../components/LogoUpload.jsx'
 import ContentEditor from '../components/ContentEditor.jsx'
@@ -59,9 +59,19 @@ function Dashboard() {
   const users = getAllUsers()
   const accesses = getAccesses()
   const subs = getSubscriptions()
+  const [paidSubs, setPaidSubs] = useState([])
+  const [paidLoaded, setPaidLoaded] = useState(false)
+
+  useEffect(() => {
+    fetchSubscribers(getAdminPin()).then((list) => {
+      setPaidSubs(list)
+      setPaidLoaded(true)
+    })
+  }, [])
 
   const activeSubs = subs.filter((s) => s.status === 'ativa')
-  const mrr = (activeSubs.length * 29.99).toFixed(2)
+  const realActiveCount = paidLoaded ? Math.max(activeSubs.length, paidSubs.length) : activeSubs.length
+  const mrr = (realActiveCount * 29.99).toFixed(2)
   const today = new Date().toDateString()
   const accessToday = accesses.filter((a) => new Date(a.ts).toDateString() === today).length
   const accessWeek = accesses.filter((a) => Date.now() - new Date(a.ts).getTime() < 7 * 86400000).length
@@ -85,7 +95,7 @@ function Dashboard() {
         <Stat label="Mulheres cadastradas" value={users.length} icon="👩" />
         <Stat label="Acessos hoje" value={accessToday} icon="🕐" />
         <Stat label="Acessos nos últimos 7 dias" value={accessWeek} icon="📈" />
-        <Stat label="Assinantes ativas" value={activeSubs.length} icon="💚" />
+        <Stat label="Assinantes ativas" value={realActiveCount} icon="💚" />
         <Stat label="Receita recorrente (MRR)" value={`R$ ${mrr}`} icon="💰" accent />
       </div>
 
@@ -144,6 +154,36 @@ function Dashboard() {
                       <td>{s.email}</td>
                       <td>{s.method === 'pix' ? 'Pix' : 'Cartão'}</td>
                       <td><span className="badge ok">{s.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </section>
+
+        <section className="card admin-table">
+          <h3>Pagamentos confirmados (Kiwify)</h3>
+          <div className="table-scroll">
+            {!paidLoaded ? (
+              <p className="empty">Buscando pagamentos...</p>
+            ) : paidSubs.length === 0 ? (
+              <p className="empty">Nenhum pagamento confirmado ainda.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>E-mail</th>
+                    <th>Plano</th>
+                    <th>Liberado em</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paidSubs.map((s) => (
+                    <tr key={s.email}>
+                      <td>{s.email}</td>
+                      <td>{s.plan || 'mensal'}</td>
+                      <td>{new Date(s.grantedAt).toLocaleString('pt-BR')}</td>
                     </tr>
                   ))}
                 </tbody>

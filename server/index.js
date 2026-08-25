@@ -1,6 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import multer from 'multer'
+import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -14,13 +15,88 @@ const AUDIO_DIR = path.join(DATA_DIR, 'audio')
 if (!fs.existsSync(AUDIO_DIR)) fs.mkdirSync(AUDIO_DIR, { recursive: true })
 
 const app = express()
-app.use(express.json({ limit: '2mb' }))
+app.use(express.json({ limit: '2mb', verify: (req, res, buf) => { req.rawBody = buf } }))
 
 const PORT = process.env.PORT || 3001
 const CONTENT_FILE = path.join(DATA_DIR, 'content.json')
 const AI_CONFIG_FILE = path.join(DATA_DIR, 'ai-config.json')
 const ADMIN_CONFIG_FILE = path.join(DATA_DIR, 'admin-config.json')
 const CHECKOUT_CONFIG_FILE = path.join(DATA_DIR, 'checkout-config.json')
+const ACCESS_FILE = path.join(DATA_DIR, 'access-registry.json')
+const KIWIFY_WEBHOOK_SECRET = process.env.KIWIFY_WEBHOOK_SECRET || ''
+
+function readAccessRegistry() {
+  try {
+    const raw = fs.readFileSync(ACCESS_FILE, 'utf8')
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch (e) {
+    return {}
+  }
+}
+
+function writeAccessRegistry(reg) {
+  try {
+    fs.writeFileSync(ACCESS_FILE, JSON.stringify(reg, null, 2))
+  } catch (e) {
+    console.error('access registry save error', e.message)
+  }
+}
+
+function grantAccessByEmail(email, meta = {}) {
+  const key = String(email || '').toLowerCase().trim()
+  if (!key || !key.includes('@')) return
+  const reg = readAccessRegistry()
+  const prev = reg[key] || {}
+  reg[key] = {
+    ...prev,
+    ...meta,
+    email: key,
+    access: true,
+    grantedAt: prev.grantedAt || new Date().toISOString()
+  }
+  writeAccessRegistry(reg)
+}
+
+function revokeAccessByEmail(email) {
+  const key = String(email || '').toLowerCase().trim()
+  if (!key || !key.includes('@')) return
+  const reg = readAccessRegistry()
+  if (reg[key]) {
+    reg[key] = { ...reg[key], access: false, revokedAt: new Date().toISOString() }
+    writeAccessRegistry(reg)
+  }
+}
+
+function verifyKiwifySignature(req, rawBody) {
+  const sig = req.headers['x-webhook-signature'] || ''
+  if (!sig || !KIWIFY_WEBHOOK_SECRET) return true
+  try {
+    const hmac = crypto.createHmac('sha256', KIWIFY_WEBHOOK_SECRET).update(rawBody).digest()
+    const hex = hmac.toString('hex')
+    const base64 = hmac.toString('base64')
+    return sig === hex || sig === base64
+  } catch (e) {
+    return false
+  }
+}
+
+function kiwifyEmailFromData(data) {
+  if (!data) return ''
+  if (data.customer && data.customer.email) return data.customer.email
+  if (data.subscription && data.subscription.customer && data.subscription.customer.email) return data.subscription.customer.email
+  if (data.subscriber && data.subscriber.email) return data.subscriber.email
+  if (data.order && data.order.customer && data.order.customer.email) return data.order.customer.email
+  if (data.email) return data.email
+  return ''
+}
+
+function kiwifyProductName(data) {
+  if (!data) return ''
+  if (data.product && data.product.name) return data.product.name
+  if (data.subscription && data.subscription.product && data.subscription.product.name) return data.subscription.product.name
+  return ''
+}
 
 function getCheckoutUrl() {
   try {
@@ -89,6 +165,71 @@ app.put('/api/checkout', (req, res) => {
     console.error('checkout save error', e.message)
     res.status(500).json({ error: 'Não foi possível salvar.' })
   }
+})
+
+app.post('/api/kiwify/webhook', (req, res) => {
+  if (!verifyKiwifySignature(req, req.rawBody || Buffer.from(JSON.stringify(req.body || {})))) {
+    return res.status(401).json({ error: 'Assinatura inválida' })
+  }
+  const body = req.body || {}
+  const event = String(body.event || '')
+  const data = body.data || body
+  const email = kiwifyEmailFromData(data)
+  const product = kiwifyProductName(data)
+  const plan = body.subscription ? 'mensal' : (product ? product : 'mensal')
+
+  if (!email) {
+    console.log('kiwify webhook sem e-mail', event)
+    return res.json({ ok: true, handled: false })
+  }
+
+  const evt = event.toLowerCase()
+  const status = String((data.status || (data.subscription && data.subscription.status) || '')).toLowerCase()
+  const revokes =
+    evt.includes('refund') ||
+    evt.includes('cancel') ||
+    evt.includes('chargeback') ||
+    evt.includes('failed') ||
+    evt.includes('overdue')
+  const grants =
+    evt.includes('paid') ||
+    evt.includes('released') ||
+    evt.includes('confirmed') ||
+    evt.includes('charged')
+
+  if (revokes) {
+    revokeAccessByEmail(email)
+    console.log('kiwify REVOKE', email, event)
+  } else if (grants || status === 'active' || status === 'paid' || status === 'confirmed') {
+    grantAccessByEmail(email, { plan, product, lastEvent: event, lastOrderId: data.id || data.orderId || '' })
+    console.log('kiwify GRANT', email, event)
+  } else {
+    console.log('kiwify webhook ignorado', event, email)
+  }
+
+  res.json({ ok: true, handled: true })
+})
+
+app.post('/api/verify-access', (req, res) => {
+  const { email } = req.body || {}
+  const key = String(email || '').toLowerCase().trim()
+  if (!key || !key.includes('@')) {
+    return res.json({ ok: true, access: false })
+  }
+  const reg = readAccessRegistry()
+  res.json({ ok: true, access: Boolean(reg[key] && reg[key].access) })
+})
+
+app.get('/api/subscribers', (req, res) => {
+  const { pin } = req.query || {}
+  if (pin !== getAdminPin()) {
+    return res.status(401).json({ error: 'PIN inválido' })
+  }
+  const reg = readAccessRegistry()
+  const list = Object.values(reg)
+    .filter((s) => s.access)
+    .sort((a, b) => String(b.grantedAt || '').localeCompare(String(a.grantedAt || '')))
+  res.json({ list })
 })
 
 app.put('/api/ai-config', (req, res) => {

@@ -29,3 +29,5 @@ services:
         sync: false
       - key: CHECKOUT_URL
         sync: false
+      - key: KIWIFY_WEBHOOK_SECRET
+        sync: false

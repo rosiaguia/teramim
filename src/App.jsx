@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import Landing from './pages/Landing.jsx'
 import Subscribe from './pages/Subscribe.jsx'
 import HowItWorks from './pages/HowItWorks.jsx'
@@ -17,10 +18,40 @@ import SosFlow from './components/SosFlow.jsx'
 import HomeMenu from './components/HomeMenu.jsx'
 import LockScreen from './components/LockScreen.jsx'
 import { ContentProvider } from './engine/ContentContext.jsx'
-import { hasAccess } from './engine/store.js'
+import { hasAccess, getOrCreateUser, updateCurrentUser } from './engine/store.js'
+import { verifyAccess } from './api/client.js'
 
 function AppGate() {
-  return hasAccess() ? <AppPage /> : <LockScreen />
+  const [status, setStatus] = useState(hasAccess() ? 'open' : 'checking')
+
+  useEffect(() => {
+    if (status === 'open') return
+    const user = getOrCreateUser()
+    if (!user.email || !user.email.includes('@')) {
+      setStatus('locked')
+      return
+    }
+    let cancelled = false
+    verifyAccess(user.email).then((has) => {
+      if (cancelled) return
+      if (has) {
+        updateCurrentUser({ subscribed: true })
+        setStatus('open')
+      } else {
+        setStatus('locked')
+      }
+    })
+    return () => { cancelled = true }
+  }, [status])
+
+  if (status === 'checking') {
+    return (
+      <div className="gate-loading">
+        <p>Verificando seu acesso...</p>
+      </div>
+    )
+  }
+  return status === 'open' ? <AppPage /> : <LockScreen />
 }
 
 export default function App() {

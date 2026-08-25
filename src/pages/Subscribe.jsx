@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getOrCreateUser, saveSubscription, recordPageView, updateCurrentUser, getCheckoutUrl } from '../engine/store'
 import { useContent } from '../engine/ContentContext.jsx'
-import { fetchConfig } from '../api/client.js'
+import { fetchConfig, verifyAccess } from '../api/client.js'
 import UpsellModal from '../components/UpsellModal.jsx'
 import AppLogo from '../components/AppLogo.jsx'
 
@@ -14,9 +14,11 @@ export default function Subscribe() {
   const [step, setStep] = useState('form')
   const [form, setForm] = useState({ name: user.name || '', email: '', method: 'pix' })
   const [error, setError] = useState('')
+  const [waiting, setWaiting] = useState(false)
   const [upsellOpen, setUpsellOpen] = useState(false)
   const [checkoutUrl, setCheckoutUrl] = useState(getCheckoutUrl())
   const [checkoutTarget, setCheckoutTarget] = useState('')
+  const pollRef = useRef(null)
 
   recordPageView('assinar')
 
@@ -50,19 +52,82 @@ export default function Subscribe() {
       setCheckoutTarget(target)
       window.open(target, '_blank', 'noopener,noreferrer')
       setStep('sent')
+      startPolling()
       return
     }
     setStep('confirm')
   }
 
-  function confirmPayment() {
+  function startPolling() {
+    if (pollRef.current) return
+    const email = form.email.trim()
+    pollRef.current = setInterval(async () => {
+      const has = await verifyAccess(email)
+      if (has) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+        saveSubscription({
+          userId: user.id,
+          name: form.name.trim(),
+          email: email,
+          plan: 'mensal',
+          price: priceValue,
+          method: form.method,
+          status: 'ativa'
+        })
+        setStep('done')
+      }
+    }, 6000)
+  }
+
+  function stopPolling() {
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    return () => stopPolling()
+  }, [])
+
+  async function confirmPayment() {
+    if (waiting) return
+    const email = form.email.trim()
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setError('Preciso do seu e-mail para verificar o pagamento.')
+      setStep('form')
+      return
+    }
+    setWaiting(true)
+    setError('')
+    const has = await verifyAccess(email)
+    setWaiting(false)
+    if (has) {
+      stopPolling()
+      saveSubscription({
+        userId: user.id,
+        name: form.name.trim(),
+        email: email,
+        plan: 'mensal',
+        price: priceValue,
+        method: form.method,
+        status: 'ativa'
+      })
+      setStep('done')
+      return
+    }
+    setError('Ainda não encontrei seu pagamento. Aguarde alguns instantes e toque de novo — ou confirme se concluiu o pagamento na Kiwify.')
+  }
+
+  function demoConfirm() {
     saveSubscription({
       userId: user.id,
       name: form.name.trim(),
       email: form.email.trim(),
       plan: 'mensal',
       price: priceValue,
-      method: 'pix',
+      method: form.method,
       status: 'ativa'
     })
     setStep('done')
@@ -131,15 +196,17 @@ export default function Subscribe() {
             <h3 className="sub-plan-title">Pagamento seguro iniciado</h3>
             <p className="section-sub" style={{ textAlign: 'left' }}>
               Abrimos o checkout em uma nova aba para você concluir o pagamento com segurança.
+              Assim que o pagamento confirmar, seu acesso libera sozinho aqui.
               Se a aba não abriu, toque no botão abaixo.
             </p>
             <a className="btn btn-lime btn-lg btn-block" href={checkoutTarget} target="_blank" rel="noopener noreferrer">
               Abrir página de pagamento
             </a>
-            <button className="btn btn-lime btn-lg btn-block" style={{ marginTop: 10 }} onClick={confirmPayment}>
-              Já paguei — ativar meu acesso
+            {error && <p className="form-error">{error}</p>}
+            <button className="btn btn-lime btn-lg btn-block" style={{ marginTop: 10 }} onClick={confirmPayment} disabled={waiting}>
+              {waiting ? 'Verificando seu pagamento...' : 'Já paguei — ativar meu acesso'}
             </button>
-            <p className="price-note">Depois de concluir o pagamento, toque em "Já paguei" para liberar seu acesso na hora. Se você já pagou e não ativou, é só tocar aqui.</p>
+            <p className="price-note">Pagou? Seu acesso ativa sozinho em alguns segundos. Se preferir, toque no botão acima.</p>
           </div>
         )}
 
@@ -160,7 +227,7 @@ export default function Subscribe() {
                 <button className="btn btn-ghost" onClick={() => setStep('form')}>Voltar</button>
               </div>
             </div>
-            <button className="btn btn-lime btn-lg btn-block" onClick={confirmPayment}>Já paguei — ativar acesso</button>
+            <button className="btn btn-lime btn-lg btn-block" onClick={demoConfirm}>Já paguei — ativar acesso</button>
             <p className="price-note">Ao ativar, você recebe acesso completo na hora (simulação de demonstração).</p>
           </div>
         )}

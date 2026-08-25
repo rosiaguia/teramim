@@ -146,3 +146,29 @@ export async function changeAdminPin(currentPin, newPin) {
     throw e
   }
 }
+
+export async function verifyAccess(email) {
+  try {
+    const r = await fetch('/api/verify-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: String(email || '').trim() })
+    })
+    if (!r.ok) return false
+    const data = await r.json()
+    return Boolean(data.access)
+  } catch (e) {
+    return false
+  }
+}
+
+export async function fetchSubscribers(pin) {
+  try {
+    const r = await fetch(`/api/subscribers?pin=${encodeURIComponent(pin)}`)
+    if (!r.ok) return []
+    const data = await r.json()
+    return Array.isArray(data.list) ? data.list : []
+  } catch (e) {
+    return []
+  }
+}
