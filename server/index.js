@@ -168,6 +168,10 @@ app.put('/api/checkout', (req, res) => {
   }
 })
 
+app.get('/api/kiwify/webhook', (req, res) => {
+  res.json({ ok: true, message: 'Webhook ativo. Aguardando avisos da Kiwify.' })
+})
+
 app.post('/api/kiwify/webhook', (req, res) => {
   if (!verifyKiwifySignature(req, req.rawBody || Buffer.from(JSON.stringify(req.body || {})))) {
     return res.status(401).json({ error: 'Assinatura inválida' })
