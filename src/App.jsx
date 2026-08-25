@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Landing from './pages/Landing.jsx'
 import Subscribe from './pages/Subscribe.jsx'
+import HowItWorks from './pages/HowItWorks.jsx'
 import AppPage from './pages/AppPage.jsx'
 import Admin from './pages/Admin.jsx'
 import TopBar from './components/TopBar.jsx'
@@ -28,6 +29,7 @@ export default function App() {
       <TopBar />
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/como-funciona" element={<HowItWorks />} />
         <Route path="/assinar" element={<Subscribe />} />
         <Route path="/app" element={<AppGate />}>
           <Route index element={<HomeMenu />} />

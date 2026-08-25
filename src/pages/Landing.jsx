@@ -51,7 +51,7 @@ export default function Landing() {
             <p className="hero-sub">{l.heroSub}</p>
             <div className="hero-cta">
               <Link to="/assinar" className="btn btn-primary btn-lg">Quero voltar para mim</Link>
-              <Link to="/assinar" className="btn btn-ghost btn-lg">Ver como funciona</Link>
+              <Link to="/como-funciona" className="btn btn-ghost btn-lg">Ver como funciona</Link>
             </div>
             <p className="hero-note">Feito para mulheres 40+ que querem recuperar prazer de viver, vitalidade e viver em paz.</p>
           </div>
