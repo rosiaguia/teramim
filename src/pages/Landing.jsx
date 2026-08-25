@@ -10,6 +10,22 @@ const STEPS = [
   { n: 'E', title: 'Escolha', text: 'Escolha a crença nova que vai ao comando. A antiga volta ao passado — e a imagem nova vira experiência.' }
 ]
 
+const PAINS = [
+  'Você acorda já cansada, com a mente ligada antes dos pés tocarem o chão.',
+  'Cuida de todo mundo o dia inteiro — e percebe que ninguém cuidou de você.',
+  'Sente que tem um "piloto automático" que não desliga nunca.',
+  'No fim do dia, o corpo pede paz — mas a cabeça não deixa.'
+]
+
+const BENEFITS = [
+  { icon: '🌿', title: 'Regula seu sistema nervoso', text: 'Tira seu corpo do modo alerta e leva para o modo calma, em poucos minutos por dia.' },
+  { icon: '🗣️', title: 'Voz da Rosi te guia', text: 'Práticas guiadas por quem entende: acolhimento de mulher para mulher, sem enrolação.' },
+  { icon: '🧠', title: 'Entende o que você precisa agora', text: 'Avaliação emocional que identifica o momento certo e te leva ao protocolo certo.' },
+  { icon: '⏱️', title: 'Cabe na sua rotina', text: 'Práticas curtas de manhã, meio-dia e noite. Você não precisa de horas — precisa de constância.' },
+  { icon: '🆘', title: 'SOS para os dias difíceis', text: 'Um recurso fisiológico de emergência para quando a emoção apertar.' },
+  { icon: '💚', title: 'Feito para mulher 40+', text: 'Não é mais um app de gente jovem. É para a mulher madura que quer voltar para si.' }
+]
+
 export default function Landing() {
   const { content } = useContent()
   if (!content) return <main className="hero" />
@@ -18,6 +34,7 @@ export default function Landing() {
 
   return (
     <main>
+      {/* HERO — dor + promessa */}
       <section className="hero">
         <div className="hero-bg">
           <div className="orb orb-1" />
@@ -33,13 +50,29 @@ export default function Landing() {
             <h1 className="hero-title" style={{ whiteSpace: 'pre-line' }}>{l.heroTitle}</h1>
             <p className="hero-sub">{l.heroSub}</p>
             <div className="hero-cta">
-              <Link to="/app" className="btn btn-primary btn-lg">Começar meu P.A.R.E. agora</Link>
+              <Link to="/assinar" className="btn btn-primary btn-lg">Quero voltar para mim</Link>
+              <Link to="/assinar" className="btn btn-ghost btn-lg">Ver como funciona</Link>
             </div>
             <p className="hero-note">Feito para mulheres 40+ que querem recuperar prazer de viver, vitalidade e viver em paz.</p>
           </div>
         </div>
       </section>
 
+      {/* DORES — você se reconhece? */}
+      <section className="container section">
+        <h2 className="section-title">Você se reconhece em algum destes dias?</h2>
+        <p className="section-sub">Não é falta de força. É um sistema nervoso sobrecarregado — e isso tem solução.</p>
+        <div className="pains-grid">
+          {PAINS.map((p, i) => (
+            <div key={i} className="pain-card card fade-up" style={{ animationDelay: `${i * 0.06}s` }}>
+              <span className="pain-mark">✦</span>
+              <p>{p}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* MÉTODO P.A.R.E */}
       <section className="container section">
         <h2 className="section-title">{l.stepsTitle}</h2>
         <p className="section-sub">{l.stepsSub}</p>
@@ -54,6 +87,7 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* BIBLIOTECA RÉSP — amostra que gera desejo */}
       <section className="container section">
         <div className="section-head">
           <h2 className="section-title">Biblioteca RÉSP<sup>®</sup></h2>
@@ -75,28 +109,37 @@ export default function Landing() {
             </div>
           ))}
         </div>
+        <div className="center" style={{ marginTop: 28 }}>
+          <Link to="/assinar" className="btn btn-primary btn-lg">Quero todas as práticas agora</Link>
+        </div>
       </section>
 
+      {/* BENEFÍCIOS */}
       <section className="section sand-bg">
-        <div className="container split">
-          <div>
-            <h2 className="section-title" style={{ whiteSpace: 'pre-line' }}>{l.section2Title}</h2>
-            <p className="section-sub">{l.section2Sub}</p>
-            <ul className="check-list">
-              <li>Regulação do sistema nervoso no modo parassimpático</li>
-              <li>Práticas guiadas com a voz da Rosi, de manhã, meio-dia e noite</li>
-              <li>Quiz das suas 4 necessidades e protocolos direcionados</li>
-              <li>SOS fisiológico para picos de emoção</li>
-              <li>Resposta rápida: poucos minutos por dia</li>
-            </ul>
-          </div>
-          <div className="quote-card">
-            <p className="quote">“Eu não vim te dizer o que sentir. Vim te ajudar a perceber, regular e escolher.”</p>
-            <span className="quote-author">Rosi Aguiar — Instrutora de Breathwork e criadora do P.A.R.E®</span>
+        <div className="container">
+          <h2 className="section-title center">O que muda quando você treina paz</h2>
+          <p className="section-sub center">Não é promessa mágica. É método, ciência e constância.</p>
+          <div className="benefits-grid">
+            {BENEFITS.map((b, i) => (
+              <div key={i} className="benefit-card card fade-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                <span className="benefit-icon">{b.icon}</span>
+                <h3>{b.title}</h3>
+                <p>{b.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* QUOTE + TRANSFORMAÇÃO */}
+      <section className="container section">
+        <div className="quote-card big">
+          <p className="quote">“Eu não vim te dizer o que sentir. Vim te ajudar a perceber, regular e escolher.”</p>
+          <span className="quote-author">Rosi Aguiar — Instrutora de Breathwork e criadora do P.A.R.E®</span>
+        </div>
+      </section>
+
+      {/* PREÇO */}
       <section className="container section center">
         <h2 className="section-title">{l.priceTitle}</h2>
         <p className="section-sub">{l.priceSub}</p>
@@ -112,10 +155,11 @@ export default function Landing() {
             <li>Rápido e seguro: poucos minutos por dia</li>
           </ul>
           <Link to="/assinar" className="btn btn-lime btn-lg btn-block">Quero começar meu P.A.R.E. agora</Link>
-          <p className="price-note">Faturamento recorrente · Cancele quando quiser</p>
+          <p className="price-note">Faturamento recorrente · Cancele quando quiser · Garantia de 7 dias</p>
         </div>
       </section>
 
+      {/* TRIBO */}
       <section className="section sand-bg">
         <div className="container center">
           <span className="chip">Acompanhamento ao vivo</span>
@@ -133,6 +177,18 @@ export default function Landing() {
             Quero acompanhamento ao vivo
           </a>
           <p className="price-note">Encontros ao vivo com a Rosi · dentro do Reset Emocional</p>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="container section center">
+        <div className="card final-cta fade-up">
+          <h2 className="section-title" style={{ whiteSpace: 'pre-line' }}>
+            {`A paz não espera o dia perfeito.\nEla começa na próxima respiração.`}
+          </h2>
+          <p className="section-sub">Daqui a 30 dias, você vai agradecer à mulher que começou hoje.</p>
+          <Link to="/assinar" className="btn btn-lime btn-lg btn-block">Quero meu acesso completo</Link>
+          <p className="price-note">Menos de R$ 1,00 por dia · Cancele quando quiser</p>
         </div>
       </section>
 

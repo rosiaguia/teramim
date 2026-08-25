@@ -14,7 +14,13 @@ import AudioPractice from './components/AudioPractice.jsx'
 import AudioPracticeDetail from './components/AudioPracticeDetail.jsx'
 import SosFlow from './components/SosFlow.jsx'
 import HomeMenu from './components/HomeMenu.jsx'
+import LockScreen from './components/LockScreen.jsx'
 import { ContentProvider } from './engine/ContentContext.jsx'
+import { hasAccess } from './engine/store.js'
+
+function AppGate() {
+  return hasAccess() ? <AppPage /> : <LockScreen />
+}
 
 export default function App() {
   return (
@@ -23,7 +29,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/assinar" element={<Subscribe />} />
-        <Route path="/app" element={<AppPage />}>
+        <Route path="/app" element={<AppGate />}>
           <Route index element={<HomeMenu />} />
           <Route path="avaliacao" element={<GuidedFlow />} />
           <Route path="ritual" element={<RitualMenu />} />

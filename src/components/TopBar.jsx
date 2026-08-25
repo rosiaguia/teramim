@@ -1,9 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
 import AppLogo from './AppLogo.jsx'
+import { hasAccess } from '../engine/store.js'
 
 export default function TopBar() {
   const { pathname } = useLocation()
   const isApp = pathname.startsWith('/app')
+  const isAssinar = pathname.startsWith('/assinar')
+  const isAdmin = pathname.startsWith('/admin')
 
   return (
     <header className="topbar">
@@ -14,8 +17,17 @@ export default function TopBar() {
         </Link>
         <nav className="topnav">
           <Link to="/" className={pathname === '/' ? 'nav-link active' : 'nav-link'}>Início</Link>
-          <Link to="/app" className={isApp ? 'nav-link active' : 'nav-link'}>Praticar</Link>
-          <Link to="/app" className="btn btn-primary btn-sm">Começar agora</Link>
+          {hasAccess() ? (
+            <>
+              <Link to="/app" className={isApp ? 'nav-link active' : 'nav-link'}>Praticar</Link>
+              <Link to="/app" className="btn btn-primary btn-sm">Voltar às práticas</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/assinar" className={isAssinar ? 'nav-link active' : 'nav-link'}>Assinar</Link>
+              {!isAdmin && <Link to="/assinar" className="btn btn-primary btn-sm">Começar agora</Link>}
+            </>
+          )}
         </nav>
       </div>
     </header>

@@ -136,7 +136,10 @@ export default function Subscribe() {
             <a className="btn btn-primary btn-lg btn-block" href={checkoutTarget} target="_blank" rel="noopener noreferrer">
               Abrir página de pagamento
             </a>
-            <p className="price-note">Assim que concluir o pagamento, volte aqui para começar seu primeiro treino de paz.</p>
+            <button className="btn btn-lime btn-lg btn-block" style={{ marginTop: 10 }} onClick={confirmPayment}>
+              Já paguei — ativar meu acesso
+            </button>
+            <p className="price-note">Depois de concluir o pagamento, toque em "Já paguei" para liberar seu acesso na hora. Se você já pagou e não ativou, é só tocar aqui.</p>
           </div>
         )}
 

@@ -42,6 +42,17 @@ export function getOrCreateUser() {
   return user
 }
 
+export function hasAccess() {
+  const cur = localStorage.getItem(CURRENT_KEY)
+  if (cur) {
+    try {
+      const parsed = JSON.parse(cur)
+      if (parsed && parsed.subscribed) return true
+    } catch { /* ignore */ }
+  }
+  return false
+}
+
 export function updateCurrentUser(patch) {
   const user = getOrCreateUser()
   const merged = { ...user, ...patch, id: user.id }

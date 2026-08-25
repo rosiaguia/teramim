@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAllUsers, getAccesses, getSubscriptions, getCheckoutUrl, setCheckoutUrl, setAdminPin, getAdminPin } from '../engine/store.js'
+import { getAllUsers, getAccesses, getSubscriptions, getCheckoutUrl, setCheckoutUrl, setAdminPin, getAdminPin, updateCurrentUser } from '../engine/store.js'
 import { fetchConfig, saveAiConfig, saveCheckoutUrl, loginAdmin, changeAdminPin } from '../api/client.js'
 import AudioUpload from '../components/AudioUpload.jsx'
 import LogoUpload from '../components/LogoUpload.jsx'
@@ -27,6 +27,7 @@ export default function Admin() {
               const valid = await loginAdmin(pin)
               if (valid) {
                 setAdminPin(pin)
+                updateCurrentUser({ subscribed: true })
                 setOk(true)
               } else {
                 setErr(true)

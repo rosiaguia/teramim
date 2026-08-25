@@ -18,3 +18,4 @@ deploy/data/
 # Logs e sistema
 *.log
 .DS_Store
+public/teramim-app.zip
