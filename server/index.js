@@ -70,7 +70,8 @@ function revokeAccessByEmail(email) {
 
 function verifyKiwifySignature(req, rawBody) {
   const sig = req.headers['x-webhook-signature'] || ''
-  if (!sig || !KIWIFY_WEBHOOK_SECRET) return true
+  if (!KIWIFY_WEBHOOK_SECRET) return true
+  if (!sig) return false
   try {
     const hmac = crypto.createHmac('sha256', KIWIFY_WEBHOOK_SECRET).update(rawBody).digest()
     const hex = hmac.toString('hex')
