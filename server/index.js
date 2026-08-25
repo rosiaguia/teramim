@@ -84,9 +84,10 @@ function revokeAccessByEmail(email) {
 }
 
 function verifyKiwifySignature(req, rawBody) {
-  const sig = req.headers['x-webhook-signature'] || ''
   if (!KIWIFY_WEBHOOK_SECRET) return true
+  const sig = String(req.query.signature || req.headers['x-webhook-signature'] || '').trim()
   if (!sig) return false
+  if (sig === KIWIFY_WEBHOOK_SECRET) return true
   try {
     const hmac = crypto.createHmac('sha256', KIWIFY_WEBHOOK_SECRET).update(rawBody).digest()
     const hex = hmac.toString('hex')
@@ -99,6 +100,7 @@ function verifyKiwifySignature(req, rawBody) {
 
 function kiwifyEmailFromData(data) {
   if (!data) return ''
+  if (data.Customer && data.Customer.email) return data.Customer.email
   if (data.customer && data.customer.email) return data.customer.email
   if (data.subscription && data.subscription.customer && data.subscription.customer.email) return data.subscription.customer.email
   if (data.subscriber && data.subscriber.email) return data.subscriber.email
@@ -109,6 +111,8 @@ function kiwifyEmailFromData(data) {
 
 function kiwifyProductName(data) {
   if (!data) return ''
+  if (data.Product && data.Product.product_name) return data.Product.product_name
+  if (data.Product && data.Product.name) return data.Product.name
   if (data.product && data.product.name) return data.product.name
   if (data.subscription && data.subscription.product && data.subscription.product.name) return data.subscription.product.name
   return ''
@@ -203,8 +207,8 @@ app.get('/api/kiwify/diag', (req, res) => {
 
 app.post('/api/kiwify/webhook', (req, res) => {
   const body = req.body || {}
-  const sig = req.headers['x-webhook-signature'] || ''
-  const event = String(body.event || '')
+  const sig = String(req.query.signature || req.headers['x-webhook-signature'] || '')
+  const event = String(body.webhook_event_type || body.event || '')
   const data = body.data || body
   const email = kiwifyEmailFromData(data)
 
@@ -231,27 +235,39 @@ app.post('/api/kiwify/webhook', (req, res) => {
   }
 
   const evt = event.toLowerCase()
-  const status = String((data.status || (data.subscription && data.subscription.status) || '')).toLowerCase()
+  const status = String(data.order_status || data.status || (data.subscription && data.subscription.status) || '').toLowerCase()
   const revokes =
+    status === 'refunded' ||
+    status === 'refund' ||
+    status === 'canceled' ||
+    status === 'cancelled' ||
+    status === 'cancelled_subscription' ||
+    status === 'chargeback' ||
     evt.includes('refund') ||
     evt.includes('cancel') ||
     evt.includes('chargeback') ||
     evt.includes('failed') ||
     evt.includes('overdue')
   const grants =
+    status === 'paid' ||
+    status === 'approved' ||
+    status === 'active' ||
+    status === 'confirmed' ||
     evt.includes('paid') ||
+    evt.includes('approved') ||
     evt.includes('released') ||
     evt.includes('confirmed') ||
-    evt.includes('charged')
+    evt.includes('charged') ||
+    evt.includes('renewed')
 
   if (revokes) {
     revokeAccessByEmail(email)
-    console.log('kiwify REVOKE', email, event)
-  } else if (grants || status === 'active' || status === 'paid' || status === 'confirmed') {
-    grantAccessByEmail(email, { plan, product, lastEvent: event, lastOrderId: data.id || data.orderId || '' })
-    console.log('kiwify GRANT', email, event)
+    console.log('kiwify REVOKE', email, event, status)
+  } else if (grants) {
+    grantAccessByEmail(email, { plan, product, lastEvent: event, lastOrderId: data.order_id || data.id || data.orderId || '' })
+    console.log('kiwify GRANT', email, event, status)
   } else {
-    console.log('kiwify webhook ignorado', event, email)
+    console.log('kiwify webhook ignorado', event, status, email)
   }
 
   res.json({ ok: true, handled: true })
