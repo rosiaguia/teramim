@@ -11,7 +11,7 @@ const DEFAULTS = {
     section2Title: 'O seu sistema nervoso\nno modo da calma',
     section2Sub: 'O P.A.R.E® não trabalha apenas com trauma, mas sim com o que não cresceu: emoções que pedem acolhimento, imagens mentais novas para o que você quer viver. Respiração, presença, escolha, ciência e fé — sem promessas mágicas, mas com resultado no dia a dia.',
     priceTitle: 'Comece hoje por menos de um real ao dia',
-    priceSub: 'Acesso completo à IA TERAMIM, biblioteca RÉSP, áudios guiados e protocolos. Cancele quando quiser, sem fidelidade.'
+    priceSub: 'Acesso completo à biblioteca RÉSP, áudios guiados e protocolos de breathwork. Cancele quando quiser, sem fidelidade.'
   },
   pricing: {
     price: '29,99',
