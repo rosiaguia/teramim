@@ -19,7 +19,7 @@ export default function LockScreen() {
             <h1 className="hero-title" style={{ fontSize: 'clamp(26px, 4vw, 38px)' }}>Aqui dentro é para quem escolheu a paz como treino.</h1>
             <p className="hero-sub">Este espaço é exclusivo para as mulheres que fazem parte da comunidade P.A.R.E®. Se ainda não é assinante, sua jornada começa em poucos cliques.</p>
             <div className="hero-cta">
-              <Link to="/assinar" className="btn btn-primary btn-lg">Quero meu acesso completo</Link>
+              <Link to="/assinar" className="btn btn-lime btn-lg">Quero meu acesso completo</Link>
             </div>
             <p className="hero-note">Pagamento seguro · Acesso imediato · Garantia de 7 dias</p>
           </div>

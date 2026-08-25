@@ -121,7 +121,7 @@ export default function Subscribe() {
               </div>
             </label>
             {error && <p className="form-error">{error}</p>}
-            <button type="submit" className="btn btn-primary btn-lg btn-block">{checkoutUrl ? 'Ir para o pagamento seguro' : 'Continuar para o pagamento'}</button>
+            <button type="submit" className="btn btn-lime btn-lg btn-block">{checkoutUrl ? 'Ir para o pagamento seguro' : 'Continuar para o pagamento'}</button>
             {!checkoutUrl && <p className="price-note">Ambiente de demonstração · nenhuma cobrança real é feita.</p>}
           </form>
         )}
@@ -133,7 +133,7 @@ export default function Subscribe() {
               Abrimos o checkout em uma nova aba para você concluir o pagamento com segurança.
               Se a aba não abriu, toque no botão abaixo.
             </p>
-            <a className="btn btn-primary btn-lg btn-block" href={checkoutTarget} target="_blank" rel="noopener noreferrer">
+            <a className="btn btn-lime btn-lg btn-block" href={checkoutTarget} target="_blank" rel="noopener noreferrer">
               Abrir página de pagamento
             </a>
             <button className="btn btn-lime btn-lg btn-block" style={{ marginTop: 10 }} onClick={confirmPayment}>
@@ -160,7 +160,7 @@ export default function Subscribe() {
                 <button className="btn btn-ghost" onClick={() => setStep('form')}>Voltar</button>
               </div>
             </div>
-            <button className="btn btn-primary btn-lg btn-block" onClick={confirmPayment}>Já paguei — ativar acesso</button>
+            <button className="btn btn-lime btn-lg btn-block" onClick={confirmPayment}>Já paguei — ativar acesso</button>
             <p className="price-note">Ao ativar, você recebe acesso completo na hora (simulação de demonstração).</p>
           </div>
         )}

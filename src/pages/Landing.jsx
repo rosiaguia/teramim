@@ -50,7 +50,9 @@ export default function Landing() {
             <h1 className="hero-title" style={{ whiteSpace: 'pre-line' }}>{l.heroTitle}</h1>
             <p className="hero-sub">{l.heroSub}</p>
             <div className="hero-cta">
-              <Link to="/assinar" className="btn btn-primary btn-lg">Quero voltar para mim</Link>
+              <button type="button" className="btn btn-lime btn-lg" onClick={() => document.getElementById('como-voltar')?.scrollIntoView({ behavior: 'smooth' })}>
+                COMO voltar para mim ↓
+              </button>
               <Link to="/como-funciona" className="btn btn-ghost btn-lg">Ver como funciona</Link>
             </div>
             <p className="hero-note">Feito para mulheres 40+ que querem recuperar prazer de viver, vitalidade e viver em paz.</p>
@@ -59,7 +61,7 @@ export default function Landing() {
       </section>
 
       {/* DORES — você se reconhece? */}
-      <section className="container section">
+      <section className="container section" id="como-voltar">
         <h2 className="section-title">Você se reconhece em algum destes dias?</h2>
         <p className="section-sub">Não é falta de força. É um sistema nervoso sobrecarregado — e isso tem solução.</p>
         <div className="pains-grid">
@@ -110,7 +112,7 @@ export default function Landing() {
           ))}
         </div>
         <div className="center" style={{ marginTop: 28 }}>
-          <Link to="/assinar" className="btn btn-primary btn-lg">Quero todas as práticas agora</Link>
+          <Link to="/assinar" className="btn btn-lime btn-lg">Quero todas as práticas agora</Link>
         </div>
       </section>
 

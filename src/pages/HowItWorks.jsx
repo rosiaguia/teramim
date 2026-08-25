@@ -56,7 +56,7 @@ export default function HowItWorks() {
               o seu dia a dia — e como poucos minutos por dia mudam o seu cérebro.
             </p>
             <div className="hero-cta">
-              <Link to="/assinar" className="btn btn-primary btn-lg">Quero começar meu P.A.R.E. agora</Link>
+              <Link to="/assinar" className="btn btn-lime btn-lg">Quero começar meu P.A.R.E. agora</Link>
             </div>
           </div>
         </div>
