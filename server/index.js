@@ -209,7 +209,16 @@ app.post('/api/kiwify/webhook', (req, res) => {
   const email = kiwifyEmailFromData(data)
 
   const okSig = verifyKiwifySignature(req, req.rawBody || Buffer.from(JSON.stringify(body)))
-  logKiwifyHit({ event, email: email || '', sig: sig ? (sig.slice(0, 12) + '...') : '(sem assinatura)', sigOk: okSig, keys: Object.keys(body).slice(0, 10) })
+  const raw = (req.rawBody ? req.rawBody.toString('utf8') : '') || JSON.stringify(body)
+  logKiwifyHit({
+    event,
+    email: email || '',
+    sig: sig ? (sig.slice(0, 12) + '...') : '(sem assinatura)',
+    sigOk: okSig,
+    url: req.originalUrl || req.url || '',
+    headers: Object.keys(req.headers || {}).filter((h) => h.startsWith('x-') || h.includes('token') || h.includes('sign') || h.includes('auth') || h.includes('kiwify')),
+    bodyPreview: raw.slice(0, 2000)
+  })
   if (!okSig) {
     return res.status(401).json({ error: 'Assinatura inválida' })
   }
