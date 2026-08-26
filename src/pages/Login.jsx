@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getOrCreateUser, updateCurrentUser, saveSubscription } from '../engine/store'
+import { getOrCreateUser, hasAccess, updateCurrentUser, saveSubscription } from '../engine/store'
 import { loginUser, setPassword } from '../api/client.js'
 import AppLogo from '../components/AppLogo.jsx'
 
@@ -20,6 +20,9 @@ export default function Login({ onSuccess }) {
     const saved = getOrCreateUser()
     if (saved.email) {
       setForm((f) => ({ ...f, email: f.email || saved.email }))
+    }
+    if (hasAccess()) {
+      navigate('/app', { replace: true })
     }
   }, [])
 

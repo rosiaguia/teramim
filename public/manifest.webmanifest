@@ -3,7 +3,7 @@
   "name": "P.A.R.E® — Paz não é evento, paz é treino",
   "short_name": "P.A.R.E®",
   "description": "Metodologia de regulação emocional para mulheres, criada por Rosi Aguiar. Sua avaliação emocional, ritual diário, processo e respiração consciente.",
-  "start_url": "/",
+  "start_url": "/#/entrar",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
