@@ -28,7 +28,7 @@ export default function HomeMenu() {
           </Link>
         ))}
       </div>
-      <div className="install-wrap" style={{ marginTop: 18 }}>
+      <div className="install-wrap" style={{ marginTop: 44, textAlign: 'center' }}>
         <InstallAppButton />
       </div>
     </div>
