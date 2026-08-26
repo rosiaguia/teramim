@@ -6,8 +6,8 @@
   --sand: #EAE0CF;
   --terracotta: #C08552;
   --terracotta-dark: #9A6438;
-  --earth: #4A3F35;
-  --earth-soft: #6B5D4F;
+  --earth: #3B332B;
+  --earth-soft: #57493D;
   --clay: #D8C6AD;
   --white: #FFFDF8;
   --danger: #B34A3A;
@@ -28,6 +28,7 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-sans);
+  font-size: 17px;
   background: var(--cream);
   color: var(--earth);
   line-height: 1.6;
@@ -67,6 +68,15 @@ button { font-family: inherit; cursor: pointer; }
 }
 .btn-terracotta { background: var(--terracotta); color: var(--white); }
 .btn-terracotta:hover { background: var(--terracotta-dark); }
+.btn-brown {
+  background: #6E4E33;
+  color: #FFF9EF;
+  box-shadow: 0 4px 16px rgba(110, 78, 51, 0.4);
+}
+.btn-brown:hover {
+  background: #5C412A;
+  box-shadow: 0 6px 22px rgba(110, 78, 51, 0.5);
+}
 .btn-outline { background: transparent; color: var(--sage-dark); border: 2px solid var(--sage); }
 .btn-outline:hover { background: var(--sage-light); }
 .btn-ghost { background: transparent; color: var(--earth-soft); border: 1.5px solid var(--clay); }
@@ -93,7 +103,10 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .section-title { font-size: clamp(28px, 4vw, 42px); margin-bottom: 12px; }
-.section-sub { color: var(--earth-soft); font-size: 17px; max-width: 640px; margin-bottom: 32px; }
+.section-sub {
+  color: var(--earth-soft); font-size: 18px; max-width: 640px;
+  margin: 0 auto 32px; text-align: center; line-height: 1.6;
+}
 .library-upper { text-transform: uppercase; font-weight: 700; letter-spacing: .02em; }
 .library-states { color: var(--accent); font-weight: 600; }
 .library-explanation { font-size: 14.5px; color: var(--earth-soft); max-width: 640px; margin: -20px 0 26px; line-height: 1.5; }
