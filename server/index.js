@@ -83,6 +83,34 @@ function revokeAccessByEmail(email) {
   }
 }
 
+function hashPassword(password, salt) {
+  return crypto.scryptSync(String(password || ''), String(salt || ''), 64).toString('hex')
+}
+
+function setPasswordForEmail(email, password) {
+  const key = String(email || '').toLowerCase().trim()
+  if (!key || !key.includes('@')) return { ok: false, error: 'email_invalido' }
+  if (!password || String(password).length < 4) return { ok: false, error: 'senha_curta' }
+  const reg = readAccessRegistry()
+  const entry = reg[key]
+  if (!entry || !entry.access) return { ok: false, error: 'sem_acesso' }
+  const salt = crypto.randomBytes(16).toString('hex')
+  reg[key] = { ...entry, pwdSalt: salt, pwdHash: hashPassword(password, salt) }
+  writeAccessRegistry(reg)
+  return { ok: true }
+}
+
+function verifyLogin(email, password) {
+  const key = String(email || '').toLowerCase().trim()
+  if (!key || !key.includes('@')) return { access: false, reason: 'no_access' }
+  const reg = readAccessRegistry()
+  const entry = reg[key]
+  if (!entry || !entry.access) return { access: false, reason: 'no_access' }
+  if (!entry.pwdHash || !entry.pwdSalt) return { access: true, needPassword: true, name: entry.name || '' }
+  if (hashPassword(password, entry.pwdSalt) !== entry.pwdHash) return { access: false, reason: 'wrong_password' }
+  return { access: true, name: entry.name || '' }
+}
+
 function verifyKiwifySignature(req, rawBody) {
   if (!KIWIFY_WEBHOOK_SECRET) return true
   const sig = String(req.query.signature || req.headers['x-webhook-signature'] || '').trim()
@@ -114,6 +142,13 @@ function kiwifyProductName(data) {
   if (data.Product && data.Product.name) return data.Product.name
   if (data.product && data.product.name) return data.product.name
   if (data.subscription && data.subscription.product && data.subscription.product.name) return data.subscription.product.name
+  return ''
+}
+
+function kiwifyCustomerName(data) {
+  if (!data) return ''
+  if (data.Customer && (data.Customer.full_name || data.Customer.name)) return data.Customer.full_name || data.Customer.name
+  if (data.customer && (data.customer.name || data.customer.full_name)) return data.customer.name || data.customer.full_name
   return ''
 }
 
@@ -263,7 +298,7 @@ app.post('/api/kiwify/webhook', (req, res) => {
     revokeAccessByEmail(email)
     console.log('kiwify REVOKE', email, event, status)
   } else if (grants) {
-    grantAccessByEmail(email, { plan, product, lastEvent: event, lastOrderId: data.order_id || data.id || data.orderId || '' })
+    grantAccessByEmail(email, { plan, product, name: kiwifyCustomerName(data), lastEvent: event, lastOrderId: data.order_id || data.id || data.orderId || '' })
     console.log('kiwify GRANT', email, event, status)
   } else {
     console.log('kiwify webhook ignorado', event, status, email)
@@ -280,6 +315,20 @@ app.post('/api/verify-access', (req, res) => {
   }
   const reg = readAccessRegistry()
   res.json({ ok: true, access: Boolean(reg[key] && reg[key].access) })
+})
+
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body || {}
+  res.json({ ok: true, ...verifyLogin(email, password) })
+})
+
+app.post('/api/set-password', (req, res) => {
+  const { email, password } = req.body || {}
+  const r = setPasswordForEmail(email, password)
+  if (!r.ok) {
+    return res.status(400).json({ ok: false, error: r.error })
+  }
+  res.json({ ok: true })
 })
 
 app.get('/api/subscribers', (req, res) => {

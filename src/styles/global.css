@@ -74,6 +74,13 @@ button { font-family: inherit; cursor: pointer; }
 .btn-lg { padding: 16px 36px; font-size: 17px; }
 .btn-block { width: 100%; }
 
+.link-btn {
+  background: none; border: none; padding: 0;
+  color: var(--sage-dark); font-size: inherit; font-weight: 600;
+  text-decoration: underline; cursor: pointer;
+}
+.link-btn:hover { color: var(--terracotta); }
+
 .chip {
   display: inline-block; padding: 8px 16px; border-radius: 999px;
   background: var(--sage-light); color: var(--sage-dark);

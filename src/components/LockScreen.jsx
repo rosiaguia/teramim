@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom'
 import AppLogo from './AppLogo.jsx'
 
+const SUPPORT_PHONE = '(51) 99403-4879'
+const SUPPORT_TEL = 'tel:+5551994034879'
+
 export default function LockScreen() {
   return (
     <main className="lock-page">
@@ -52,8 +55,13 @@ export default function LockScreen() {
               <span>Quando a emoção apertar, você tem onde apoiar</span>
             </div>
           </div>
-          <Link to="/assinar" className="btn btn-lime btn-lg btn-block">Liberar meu acesso agora</Link>
+          <Link to="/entrar" className="btn btn-lime btn-lg btn-block">Já sou assinante — Entrar</Link>
+          <Link to="/assinar" className="btn btn-ghost btn-lg btn-block" style={{ marginTop: 10 }}>Quero assinar o P.A.R.E®</Link>
           <p className="price-note">Menos de R$ 1,00 por dia · Cancele quando quiser</p>
+          <div className="lock-support">
+            <p className="price-note">Pagou e não consegue entrar?</p>
+            <a className="btn btn-terracotta btn-sm" href={SUPPORT_TEL}>WhatsApp da Rosi · {SUPPORT_PHONE}</a>
+          </div>
         </div>
       </section>
     </main>

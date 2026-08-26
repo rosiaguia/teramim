@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Landing from './pages/Landing.jsx'
 import Subscribe from './pages/Subscribe.jsx'
 import HowItWorks from './pages/HowItWorks.jsx'
+import Login from './pages/Login.jsx'
 import AppPage from './pages/AppPage.jsx'
 import Admin from './pages/Admin.jsx'
 import TopBar from './components/TopBar.jsx'
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/como-funciona" element={<HowItWorks />} />
         <Route path="/assinar" element={<Subscribe />} />
+        <Route path="/entrar" element={<Login />} />
         <Route path="/app" element={<AppGate />}>
           <Route index element={<HomeMenu />} />
           <Route path="avaliacao" element={<GuidedFlow />} />

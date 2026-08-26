@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import InstallAppButton from './InstallAppButton.jsx'
 
 const ITEMS = [
   { path: '/app/avaliacao', icon: '🧭', title: 'Minha avaliação emocional', sub: 'Como você está agora?' },
@@ -24,6 +25,9 @@ export default function HomeMenu() {
             <span className="menu-sub">{item.sub}</span>
           </Link>
         ))}
+      </div>
+      <div className="install-wrap" style={{ marginTop: 18 }}>
+        <InstallAppButton />
       </div>
     </div>
   )

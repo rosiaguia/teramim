@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getOrCreateUser, saveSubscription, recordPageView, updateCurrentUser, getCheckoutUrl } from '../engine/store'
 import { useContent } from '../engine/ContentContext.jsx'
-import { fetchConfig, verifyAccess } from '../api/client.js'
+import { fetchConfig, verifyAccess, setPassword } from '../api/client.js'
 import UpsellModal from '../components/UpsellModal.jsx'
 import AppLogo from '../components/AppLogo.jsx'
 
@@ -18,6 +18,9 @@ export default function Subscribe() {
   const [upsellOpen, setUpsellOpen] = useState(false)
   const [checkoutUrl, setCheckoutUrl] = useState(getCheckoutUrl())
   const [checkoutTarget, setCheckoutTarget] = useState('')
+  const [passMode, setPassMode] = useState(false)
+  const [passForm, setPassForm] = useState({ password: '', confirm: '' })
+  const [passError, setPassError] = useState('')
   const pollRef = useRef(null)
 
   recordPageView('assinar')
@@ -77,7 +80,7 @@ export default function Subscribe() {
         })
         setStep('done')
       }
-    }, 6000)
+    }, 3000)
   }
 
   function stopPolling() {
@@ -131,6 +134,27 @@ export default function Subscribe() {
       status: 'ativa'
     })
     setStep('done')
+  }
+
+  async function createPassword(e) {
+    e.preventDefault()
+    setPassError('')
+    if (passForm.password.length < 4) {
+      setPassError('Sua senha precisa ter pelo menos 4 caracteres.')
+      return
+    }
+    if (passForm.password !== passForm.confirm) {
+      setPassError('As duas senhas não batem. Confira e tente de novo.')
+      return
+    }
+    const email = form.email.trim()
+    const res = await setPassword(email, passForm.password)
+    if (!res.ok) {
+      setPassError('Não foi possível criar sua senha agora. Tente de novo em instantes.')
+      return
+    }
+    updateCurrentUser({ email, subscribed: true, plan: 'mensal' })
+    setPassMode(true)
   }
 
   return (
@@ -239,7 +263,28 @@ export default function Subscribe() {
             <p className="section-sub center">
               Sua assinatura está ativa. O sistema nervoso agradece — e a Rosi já foi notificada do seu acesso.
             </p>
-            <Link to="/app" className="btn btn-primary btn-lg">Começar meu primeiro treino de paz</Link>
+            {passMode ? (
+              <Link to="/app" className="btn btn-primary btn-lg">Começar meu primeiro treino de paz</Link>
+            ) : (
+              <form className="sub-pass-form" onSubmit={createPassword}>
+                <p className="section-sub center" style={{ textAlign: 'left' }}>
+                  Para entrar no aplicativo quando quiser, escolha uma senha. Assim você acessa por e-mail e senha em qualquer aparelho.
+                </p>
+                <label className="field">
+                  <span>Escolha sua senha</span>
+                  <input type="password" value={passForm.password} onChange={(e) => setPassForm({ ...passForm, password: e.target.value })} placeholder="Mínimo 4 caracteres" autoComplete="new-password" />
+                </label>
+                <label className="field">
+                  <span>Confirme sua senha</span>
+                  <input type="password" value={passForm.confirm} onChange={(e) => setPassForm({ ...passForm, confirm: e.target.value })} placeholder="Repita a senha" autoComplete="new-password" />
+                </label>
+                {passError && <p className="form-error">{passError}</p>}
+                <button type="submit" className="btn btn-lime btn-lg btn-block">Criar senha e entrar no app</button>
+                <button type="button" className="btn btn-ghost btn-lg btn-block" style={{ marginTop: 10 }} onClick={() => setPassMode(true)}>
+                  Agora não — entrar direto
+                </button>
+              </form>
+            )}
 
             <div className="community-card">
               <span className="chip">Convite de coração</span>

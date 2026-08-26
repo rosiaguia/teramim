@@ -162,6 +162,38 @@ export async function verifyAccess(email) {
   }
 }
 
+export async function loginUser(email, password) {
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: String(email || '').trim(), password: String(password || '') })
+    })
+    if (!r.ok) return { ok: false, access: false, reason: 'no_access' }
+    return await r.json()
+  } catch (e) {
+    return { ok: false, access: false, reason: 'error' }
+  }
+}
+
+export async function setPassword(email, password) {
+  try {
+    const r = await fetch('/api/set-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: String(email || '').trim(), password: String(password || '') })
+    })
+    if (!r.ok) {
+      let msg = 'Não foi possível criar sua senha.'
+      try { msg = (await r.json()).error || msg } catch { /* ignore */ }
+      return { ok: false, error: msg }
+    }
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: 'error' }
+  }
+}
+
 export async function fetchSubscribers(pin) {
   try {
     const r = await fetch(`/api/subscribers?pin=${encodeURIComponent(pin)}`)
