@@ -154,6 +154,31 @@
 .qrcode-text p { color: var(--earth-soft); font-size: 14px; margin-bottom: 12px; }
 .done-mark { width: 64px; height: 64px; border-radius: 50%; background: var(--sage); color: var(--white); font-size: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
 
+/* ===== Login help ===== */
+.login-help { margin-top: 16px; }
+.login-help-list { display: flex; flex-direction: column; gap: 18px; }
+.login-help-item { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.login-help-item strong { font-size: 17px; color: var(--earth); }
+.login-help-sub { color: var(--earth-soft); font-size: 15px; }
+.wa-icone { flex-shrink: 0; }
+
+/* ===== Renewal banner ===== */
+.renewal-banner {
+  margin: 0 0 18px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #B8E02E 0%, #E8F5A9 55%, #F4F1DE 100%);
+  border: 2px solid #B8E02E;
+  box-shadow: 0 6px 24px rgba(184, 224, 46, 0.35);
+  padding: 4px;
+}
+.renewal-banner-inner {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 14px 16px; border-radius: calc(var(--radius-lg) - 4px);
+  background: rgba(255, 255, 255, 0.85);
+}
+.renewal-banner-icone { font-size: 26px; line-height: 1; }
+.renewal-banner-text { flex: 1; min-width: 200px; color: var(--earth); font-size: 15.5px; margin: 0; }
+
 /* ===== App shell ===== */
 .app-shell { padding: 24px 0 70px; }
 .app-back { margin-bottom: 16px; }

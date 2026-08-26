@@ -66,7 +66,7 @@ export default function Subscribe() {
     const email = form.email.trim()
     pollRef.current = setInterval(async () => {
       const has = await verifyAccess(email)
-      if (has) {
+      if (has.access) {
         clearInterval(pollRef.current)
         pollRef.current = null
         saveSubscription({
@@ -106,7 +106,7 @@ export default function Subscribe() {
     setError('')
     const has = await verifyAccess(email)
     setWaiting(false)
-    if (has) {
+    if (has.access) {
       stopPolling()
       saveSubscription({
         userId: user.id,
@@ -139,8 +139,8 @@ export default function Subscribe() {
   async function createPassword(e) {
     e.preventDefault()
     setPassError('')
-    if (passForm.password.length < 4) {
-      setPassError('Sua senha precisa ter pelo menos 4 caracteres.')
+    if (!/^\d{4}$/.test(passForm.password)) {
+      setPassError('Sua senha precisa ter exatamente 4 números.')
       return
     }
     if (passForm.password !== passForm.confirm) {
@@ -268,15 +268,15 @@ export default function Subscribe() {
             ) : (
               <form className="sub-pass-form" onSubmit={createPassword}>
                 <p className="section-sub center" style={{ textAlign: 'left' }}>
-                  Para entrar no aplicativo quando quiser, escolha uma senha. Assim você acessa por e-mail e senha em qualquer aparelho.
+                  Para entrar no aplicativo quando quiser, escolha uma senha de <strong>4 números</strong> e anote para nunca esquecer. Assim você acessa por e-mail e senha em qualquer aparelho.
                 </p>
                 <label className="field">
-                  <span>Escolha sua senha</span>
-                  <input type="password" value={passForm.password} onChange={(e) => setPassForm({ ...passForm, password: e.target.value })} placeholder="Mínimo 4 caracteres" autoComplete="new-password" />
+                  <span>Escolha sua senha de 4 números</span>
+                  <input type="password" inputMode="numeric" maxLength={4} value={passForm.password} onChange={(e) => setPassForm({ ...passForm, password: e.target.value.replace(/\D/g, '').slice(0, 4) })} placeholder="0000" autoComplete="new-password" />
                 </label>
                 <label className="field">
                   <span>Confirme sua senha</span>
-                  <input type="password" value={passForm.confirm} onChange={(e) => setPassForm({ ...passForm, confirm: e.target.value })} placeholder="Repita a senha" autoComplete="new-password" />
+                  <input type="password" inputMode="numeric" maxLength={4} value={passForm.confirm} onChange={(e) => setPassForm({ ...passForm, confirm: e.target.value.replace(/\D/g, '').slice(0, 4) })} placeholder="0000" autoComplete="new-password" />
                 </label>
                 {passError && <p className="form-error">{passError}</p>}
                 <button type="submit" className="btn btn-lime btn-lg btn-block">Criar senha e entrar no app</button>

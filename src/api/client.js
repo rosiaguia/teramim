@@ -154,11 +154,24 @@ export async function verifyAccess(email) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: String(email || '').trim() })
     })
-    if (!r.ok) return false
-    const data = await r.json()
-    return Boolean(data.access)
+    if (!r.ok) return { access: false }
+    return await r.json()
   } catch (e) {
-    return false
+    return { access: false, error: true }
+  }
+}
+
+export async function subscriptionStatus(email) {
+  try {
+    const r = await fetch('/api/subscription-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: String(email || '').trim() })
+    })
+    if (!r.ok) return { access: false, expiringSoon: false }
+    return await r.json()
+  } catch (e) {
+    return { access: false, expiringSoon: false }
   }
 }
 

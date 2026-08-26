@@ -25,6 +25,20 @@ const CHECKOUT_CONFIG_FILE = path.join(DATA_DIR, 'checkout-config.json')
 const ACCESS_FILE = path.join(DATA_DIR, 'access-registry.json')
 const WEBHOOK_LOG_FILE = path.join(DATA_DIR, 'webhook-log.json')
 const KIWIFY_WEBHOOK_SECRET = process.env.KIWIFY_WEBHOOK_SECRET || ''
+const SUBSCRIPTION_DAYS = Number(process.env.SUBSCRIPTION_DAYS || 30)
+const RENEWAL_NOTICE_DAYS = 3
+
+function isExpired(entry) {
+  if (!entry || !entry.access) return false
+  if (!entry.expiresAt) return false
+  return Date.parse(entry.expiresAt) < Date.now()
+}
+
+function daysLeft(entry) {
+  if (!entry || !entry.expiresAt) return null
+  const ms = Date.parse(entry.expiresAt) - Date.now()
+  return Math.max(0, Math.ceil(ms / 86400000))
+}
 
 function readAccessRegistry() {
   try {
@@ -63,12 +77,16 @@ function grantAccessByEmail(email, meta = {}) {
   if (!key || !key.includes('@')) return
   const reg = readAccessRegistry()
   const prev = reg[key] || {}
+  const now = Date.now()
+  let base = prev.expiresAt ? Date.parse(prev.expiresAt) : now
+  if (isNaN(base) || base < now) base = now
   reg[key] = {
     ...prev,
     ...meta,
     email: key,
     access: true,
-    grantedAt: prev.grantedAt || new Date().toISOString()
+    grantedAt: prev.grantedAt || new Date().toISOString(),
+    expiresAt: new Date(base + SUBSCRIPTION_DAYS * 86400000).toISOString()
   }
   writeAccessRegistry(reg)
 }
@@ -90,12 +108,14 @@ function hashPassword(password, salt) {
 function setPasswordForEmail(email, password) {
   const key = String(email || '').toLowerCase().trim()
   if (!key || !key.includes('@')) return { ok: false, error: 'email_invalido' }
-  if (!password || String(password).length < 4) return { ok: false, error: 'senha_curta' }
+  const pass = String(password || '').trim()
+  if (!/^\d{4}$/.test(pass)) return { ok: false, error: 'senha_4_digitos' }
   const reg = readAccessRegistry()
   const entry = reg[key]
   if (!entry || !entry.access) return { ok: false, error: 'sem_acesso' }
+  if (isExpired(entry)) return { ok: false, error: 'acesso_expirado' }
   const salt = crypto.randomBytes(16).toString('hex')
-  reg[key] = { ...entry, pwdSalt: salt, pwdHash: hashPassword(password, salt) }
+  reg[key] = { ...entry, pwdSalt: salt, pwdHash: hashPassword(pass, salt) }
   writeAccessRegistry(reg)
   return { ok: true }
 }
@@ -106,9 +126,10 @@ function verifyLogin(email, password) {
   const reg = readAccessRegistry()
   const entry = reg[key]
   if (!entry || !entry.access) return { access: false, reason: 'no_access' }
-  if (!entry.pwdHash || !entry.pwdSalt) return { access: true, needPassword: true, name: entry.name || '' }
-  if (hashPassword(password, entry.pwdSalt) !== entry.pwdHash) return { access: false, reason: 'wrong_password' }
-  return { access: true, name: entry.name || '' }
+  if (isExpired(entry)) return { access: false, reason: 'expirado' }
+  if (!entry.pwdHash || !entry.pwdSalt) return { access: false, needPassword: true, name: entry.name || '' }
+  if (hashPassword(String(password || ''), entry.pwdSalt) !== entry.pwdHash) return { access: false, reason: 'wrong_password' }
+  return { access: true, name: entry.name || '', expiresAt: entry.expiresAt || '', daysLeft: daysLeft(entry) }
 }
 
 function verifyKiwifySignature(req, rawBody) {
@@ -314,7 +335,34 @@ app.post('/api/verify-access', (req, res) => {
     return res.json({ ok: true, access: false })
   }
   const reg = readAccessRegistry()
-  res.json({ ok: true, access: Boolean(reg[key] && reg[key].access) })
+  const entry = reg[key]
+  const active = Boolean(entry && entry.access) && !isExpired(entry)
+  res.json({
+    ok: true,
+    access: active,
+    name: (entry && entry.name) || '',
+    expiresAt: (entry && entry.expiresAt) || '',
+    daysLeft: entry ? daysLeft(entry) : null
+  })
+})
+
+app.post('/api/subscription-status', (req, res) => {
+  const { email } = req.body || {}
+  const key = String(email || '').toLowerCase().trim()
+  if (!key || !key.includes('@')) {
+    return res.json({ ok: true, access: false })
+  }
+  const reg = readAccessRegistry()
+  const entry = reg[key]
+  const active = Boolean(entry && entry.access) && !isExpired(entry)
+  res.json({
+    ok: true,
+    access: active,
+    name: (entry && entry.name) || '',
+    expiresAt: (entry && entry.expiresAt) || '',
+    daysLeft: entry ? daysLeft(entry) : null,
+    expiringSoon: Boolean(entry && entry.expiresAt && active && daysLeft(entry) !== null && daysLeft(entry) <= RENEWAL_NOTICE_DAYS)
+  })
 })
 
 app.post('/api/login', (req, res) => {
@@ -338,7 +386,8 @@ app.get('/api/subscribers', (req, res) => {
   }
   const reg = readAccessRegistry()
   const list = Object.values(reg)
-    .filter((s) => s.access)
+    .filter((s) => s.access && !isExpired(s))
+    .map((s) => ({ ...s, daysLeft: daysLeft(s) }))
     .sort((a, b) => String(b.grantedAt || '').localeCompare(String(a.grantedAt || '')))
   res.json({ list })
 })
@@ -406,7 +455,7 @@ app.get('/api/audios', (req, res) => {
   res.json(audios)
 })
 
-const LOGO_DIR = path.join(__dirname, 'logo')
+const LOGO_DIR = path.join(DATA_DIR, 'logo')
 if (!fs.existsSync(LOGO_DIR)) fs.mkdirSync(LOGO_DIR, { recursive: true })
 
 const logoUpload = multer({

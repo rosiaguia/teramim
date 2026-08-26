@@ -26,17 +26,19 @@ function AppGate() {
   const [status, setStatus] = useState(hasAccess() ? 'open' : 'checking')
 
   useEffect(() => {
-    if (status === 'open') return
+    if (status === 'open' && !hasAccess()) return
     const user = getOrCreateUser()
     if (!user.email || !user.email.includes('@')) {
       setStatus('locked')
       return
     }
     let cancelled = false
-    verifyAccess(user.email).then((has) => {
+    verifyAccess(user.email).then((res) => {
       if (cancelled) return
-      if (has) {
+      if (res.access) {
         updateCurrentUser({ subscribed: true })
+        setStatus('open')
+      } else if (res.error && hasAccess()) {
         setStatus('open')
       } else {
         setStatus('locked')

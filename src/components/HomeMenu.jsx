@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import InstallAppButton from './InstallAppButton.jsx'
+import RenewalBanner from './RenewalBanner.jsx'
 
 const ITEMS = [
   { path: '/app/avaliacao', icon: '🧭', title: 'Minha avaliação emocional', sub: 'Como você está agora?' },
@@ -17,6 +18,7 @@ export default function HomeMenu() {
         <span className="chip">P.A.R.E® · terAmim</span>
         <h2 className="section-title">O que você quer fazer agora?</h2>
       </div>
+      <RenewalBanner />
       <div className="menu-grid">
         {ITEMS.map((item) => (
           <Link key={item.path} to={item.path} className="menu-card card">
