@@ -160,6 +160,8 @@
 .login-help-item { display: flex; flex-direction: column; gap: 10px; text-align: left; }
 .login-help-item strong { font-size: 17px; color: var(--earth); }
 .login-help-sub { color: var(--earth-soft); font-size: 15px; }
+.login-support-wrap { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.login-support-wrap .btn { padding: 13px 34px; font-size: 17px; }
 .wa-icone { flex-shrink: 0; }
 
 /* ===== Renewal banner ===== */
@@ -196,18 +198,29 @@
 .menu-hero .section-title { margin-top: 8px; }
 .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
 
+.menu-support { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.support-label { font-size: 16px; font-weight: 700; color: var(--earth); text-align: center; }
+.support-row { display: flex; align-items: center; gap: 12px; }
+.wa-badge {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #25D366; color: #FFFFFF;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+}
+.menu-support .btn { padding: 13px 34px; font-size: 17px; }
+
 /* ===== Install app box ===== */
 .install-box { margin-top: 18px; }
 .install-help {
   margin-top: 12px; padding: 14px 16px;
   background: var(--cream); border: 1.5px solid var(--sand); border-radius: var(--radius-sm);
-  color: var(--earth-soft); font-size: 14.5px; line-height: 1.55;
+  color: var(--earth); font-size: 15.5px; line-height: 1.55;
 }
 .menu-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; transition: transform .15s ease, box-shadow .15s ease; }
 .menu-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .menu-icon { font-size: 30px; }
 .menu-title { font-family: var(--font-serif); font-size: 17px; line-height: 1.2; }
-.menu-sub { font-size: 13px; color: var(--earth-soft); }
+.menu-sub { font-size: 14.5px; color: var(--earth); line-height: 1.4; }
 
 /* ===== Chat ===== */
 .chat-wrap { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); overflow: hidden; display: flex; flex-direction: column; height: min(72vh, 720px); }
@@ -786,6 +799,8 @@ td { padding: 9px 10px; border-bottom: 1px solid var(--sand); }
 
 /* ===== Tela de bloqueio (LockScreen) ===== */.lock-page { padding-bottom: 80px; }
 .lock-card { max-width: 640px; margin: 0 auto; padding: 40px 36px; }
+.lock-support { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 6px; }
+.lock-support .login-support-wrap { justify-content: center; }
 .lock-icon { font-size: 44px; margin-bottom: 12px; }
 .lock-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 26px 0; text-align: left; }
 .lock-item { background: var(--sand); border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 4px; }

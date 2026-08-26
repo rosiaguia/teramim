@@ -117,9 +117,26 @@ button { font-family: inherit; cursor: pointer; }
   margin: 0 auto 32px; text-align: center; line-height: 1.6;
 }
 .library-upper { text-transform: uppercase; font-weight: 700; letter-spacing: .02em; }
-.library-states { color: var(--accent); font-weight: 600; }
-.library-explanation { font-size: 16px; color: var(--earth-soft); max-width: 640px; margin: -20px auto 26px; line-height: 1.6; text-align: center; }
-.breath-note { font-size: 16.5px; font-weight: 600; color: var(--accent); max-width: 640px; margin: -14px auto 26px; line-height: 1.6; text-align: center; }
+.library-states { color: var(--sage-dark); font-weight: 600; }
+.library-box {
+  background: var(--sage-light);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+  margin: 0 auto 26px;
+  max-width: 760px;
+}
+.library-box .section-sub {
+  color: var(--earth); font-size: 17.5px; max-width: none;
+  margin: 0 0 12px; text-align: left; line-height: 1.6;
+}
+.library-box .library-explanation {
+  font-size: 16px; color: var(--earth); max-width: none;
+  margin: 0 0 10px; line-height: 1.6; text-align: left;
+}
+.library-box .breath-note {
+  font-size: 16.5px; font-weight: 600; color: var(--sage-dark);
+  max-width: none; margin: 0; line-height: 1.6; text-align: left;
+}
 
 /* Animations */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }

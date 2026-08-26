@@ -18,13 +18,15 @@ export default function RespLibrary() {
     <div className="library">
       <div className="library-head">
         <h2 className="section-title">Biblioteca RÉSP<sup>®</sup></h2>
-        <p className="section-sub">
-          <span className="library-upper">Práticas para o modo paz · Escolha a sua:</span><br />
-          Protocolos de Breathwork consciente, de 2 a 10 ciclos, com voz da Rosi Aguiar.<br />
-          <span className="library-states">Alívio · Sono · Energia · Equilíbrio · Foco · Você e sua essência</span>
-        </p>
-        <p className="library-explanation">Breathwork é a prática de usar a respiração de forma consciente para regular o sistema nervoso, acalmar a mente e devolver o equilíbrio ao corpo.</p>
-        <p className="breath-note">Escolha a voz da Rosi, use fones de ouvido, feche os olhos e se entregue.</p>
+        <div className="library-box">
+          <p className="section-sub">
+            <span className="library-upper">Práticas para o modo paz · Escolha a sua:</span><br />
+            Protocolos de Breathwork consciente, de 2 a 10 ciclos, com voz da Rosi Aguiar.<br />
+            <span className="library-states">Alívio · Sono · Energia · Equilíbrio · Foco · Você e sua essência</span>
+          </p>
+          <p className="library-explanation">Breathwork é a prática de usar a respiração de forma consciente para regular o sistema nervoso, acalmar a mente e devolver o equilíbrio ao corpo.</p>
+          <p className="breath-note">Escolha a voz da Rosi, use fones de ouvido, feche os olhos e se entregue.</p>
+        </div>
       </div>
       <div className="resp-grid">
         {list.map((r, i) => {
