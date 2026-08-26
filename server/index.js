@@ -28,15 +28,25 @@ const KIWIFY_WEBHOOK_SECRET = process.env.KIWIFY_WEBHOOK_SECRET || ''
 const SUBSCRIPTION_DAYS = Number(process.env.SUBSCRIPTION_DAYS || 30)
 const RENEWAL_NOTICE_DAYS = 3
 
+function effectiveExpiry(entry) {
+  if (!entry) return null
+  if (entry.expiresAt) return Date.parse(entry.expiresAt)
+  if (entry.grantedAt) return Date.parse(entry.grantedAt) + SUBSCRIPTION_DAYS * 86400000
+  return null
+}
+
 function isExpired(entry) {
   if (!entry || !entry.access) return false
-  if (!entry.expiresAt) return false
-  return Date.parse(entry.expiresAt) < Date.now()
+  const exp = effectiveExpiry(entry)
+  if (!exp) return false
+  return exp < Date.now()
 }
 
 function daysLeft(entry) {
-  if (!entry || !entry.expiresAt) return null
-  const ms = Date.parse(entry.expiresAt) - Date.now()
+  if (!entry) return null
+  const exp = effectiveExpiry(entry)
+  if (!exp) return null
+  const ms = exp - Date.now()
   return Math.max(0, Math.ceil(ms / 86400000))
 }
 
@@ -337,11 +347,12 @@ app.post('/api/verify-access', (req, res) => {
   const reg = readAccessRegistry()
   const entry = reg[key]
   const active = Boolean(entry && entry.access) && !isExpired(entry)
+  const exp = entry ? effectiveExpiry(entry) : null
   res.json({
     ok: true,
     access: active,
     name: (entry && entry.name) || '',
-    expiresAt: (entry && entry.expiresAt) || '',
+    expiresAt: exp ? new Date(exp).toISOString() : '',
     daysLeft: entry ? daysLeft(entry) : null
   })
 })
@@ -355,13 +366,15 @@ app.post('/api/subscription-status', (req, res) => {
   const reg = readAccessRegistry()
   const entry = reg[key]
   const active = Boolean(entry && entry.access) && !isExpired(entry)
+  const dl = entry ? daysLeft(entry) : null
+  const exp = entry ? effectiveExpiry(entry) : null
   res.json({
     ok: true,
     access: active,
     name: (entry && entry.name) || '',
-    expiresAt: (entry && entry.expiresAt) || '',
-    daysLeft: entry ? daysLeft(entry) : null,
-    expiringSoon: Boolean(entry && entry.expiresAt && active && daysLeft(entry) !== null && daysLeft(entry) <= RENEWAL_NOTICE_DAYS)
+    expiresAt: exp ? new Date(exp).toISOString() : '',
+    daysLeft: dl,
+    expiringSoon: Boolean(entry && exp && active && dl !== null && dl <= RENEWAL_NOTICE_DAYS)
   })
 })
 
