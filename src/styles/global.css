@@ -77,6 +77,15 @@ button { font-family: inherit; cursor: pointer; }
   background: #5C412A;
   box-shadow: 0 6px 22px rgba(110, 78, 51, 0.5);
 }
+.btn-whatsapp {
+  background: #25D366;
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.35);
+}
+.btn-whatsapp:hover {
+  background: #1EBE5A;
+  box-shadow: 0 6px 22px rgba(37, 211, 102, 0.5);
+}
 .btn-outline { background: transparent; color: var(--sage-dark); border: 2px solid var(--sage); }
 .btn-outline:hover { background: var(--sage-light); }
 .btn-ghost { background: transparent; color: var(--earth-soft); border: 1.5px solid var(--clay); }
