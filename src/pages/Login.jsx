@@ -7,7 +7,7 @@ import AppLogo from '../components/AppLogo.jsx'
 const SUPPORT_PHONE = '(51) 99403-4879'
 const SUPPORT_WA = 'https://wa.me/5551994034879'
 
-export default function Login() {
+export default function Login({ onSuccess }) {
   const navigate = useNavigate()
   const user = getOrCreateUser()
   const [mode, setMode] = useState('login')
@@ -50,6 +50,7 @@ export default function Login() {
       updateCurrentUser({ email, subscribed: true, plan: 'mensal', name: res.name || user.name || '' })
       saveSubscription({ userId: user.id, name: res.name || '', email, plan: 'mensal', status: 'ativa' })
       setSuccess(true)
+      if (onSuccess) onSuccess()
       setTimeout(() => navigate('/app'), 800)
       return
     }
@@ -106,6 +107,7 @@ export default function Login() {
       updateCurrentUser({ email, subscribed: true, plan: 'mensal', name: loginRes.name || user.name || '' })
       saveSubscription({ userId: user.id, name: loginRes.name || '', email, plan: 'mensal', status: 'ativa' })
       setSuccess(true)
+      if (onSuccess) onSuccess()
       setTimeout(() => navigate('/app'), 800)
       return
     }

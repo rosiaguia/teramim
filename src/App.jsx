@@ -17,7 +17,6 @@ import AudioPractice from './components/AudioPractice.jsx'
 import AudioPracticeDetail from './components/AudioPracticeDetail.jsx'
 import SosFlow from './components/SosFlow.jsx'
 import HomeMenu from './components/HomeMenu.jsx'
-import LockScreen from './components/LockScreen.jsx'
 import { ContentProvider } from './engine/ContentContext.jsx'
 import { hasAccess, getOrCreateUser, updateCurrentUser } from './engine/store.js'
 import { verifyAccess } from './api/client.js'
@@ -54,7 +53,7 @@ function AppGate() {
       </div>
     )
   }
-  return status === 'open' ? <AppPage /> : <LockScreen />
+  return status === 'open' ? <AppPage /> : <Login onSuccess={() => setStatus('open')} />
 }
 
 export default function App() {
