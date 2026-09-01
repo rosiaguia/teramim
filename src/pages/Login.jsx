@@ -155,11 +155,10 @@ export default function Login({ onSuccess }) {
           </div>
           <div className="hero-content">
             <span className="hero-brand">P.A.R.E<sup>®</sup> · terAmim</span>
-            <h1 className="hero-title">{mode === 'login' ? 'Você já pagou?' : 'Seja bem-vinda!'}</h1>
+            <h1 className="hero-title">Parabéns por se cuidar todo dia com o APP P.A.R.E®</h1>
             <p className="hero-sub">
-              {mode === 'login'
-                ? 'Coloque seu e-mail e a senha de 4 números para entrar no aplicativo.'
-                : 'Você já pagou? Seja bem-vinda. Agora crie sua senha de 4 números e anote para nunca esquecer.'}
+              Agora crie seu login com o mesmo e-mail da compra e crie sua senha de 4 números.
+              Muito obrigada pela confiança, e seja bem-vinda à Era do Ser!
             </p>
           </div>
         </div>
@@ -168,9 +167,9 @@ export default function Login({ onSuccess }) {
       <section className="container section sub-section">
         {mode === 'login' ? (
           <form className="card sub-form fade-up" onSubmit={handleLogin}>
-            <h3 className="sub-plan-title">Você já pagou?</h3>
+            <h3 className="sub-plan-title">Entre no aplicativo</h3>
             <p className="section-sub" style={{ textAlign: 'left' }}>
-              Coloque seu <strong>e-mail</strong> (o mesmo usado no pagamento) e sua <strong>senha de 4 números</strong>.
+              Coloque o mesmo <strong>e-mail da compra</strong> e sua <strong>senha de 4 números</strong>.
             </p>
             <label className="field">
               <span>Seu e-mail</span>
@@ -187,9 +186,9 @@ export default function Login({ onSuccess }) {
           </form>
         ) : (
           <form className="card sub-form fade-up" onSubmit={handleCreate}>
-            <h3 className="sub-plan-title">Seja bem-vinda! Crie sua senha</h3>
+            <h3 className="sub-plan-title">Crie sua senha de 4 números</h3>
             <p className="section-sub" style={{ textAlign: 'left' }}>
-              Sua assinatura está ativa. Crie uma senha de <strong>4 números</strong> e anote para nunca esquecer.
+              Use o mesmo e-mail da compra. Crie uma senha de <strong>4 números</strong> e anote para nunca esquecer.
             </p>
             <label className="field">
               <span>Seu e-mail</span>
