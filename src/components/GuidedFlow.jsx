@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FEELING_OPTIONS, LEVEL_OPTIONS, NEEDS, computeWinner, evaluateLevel, buildQuiz } from '../data/quiz.js'
 import { protocolForNeed } from '../data/protocols.js'
-import { decreeBankForNeed } from '../data/decrees.js'
+import { pickFreshDecree } from '../data/decrees.js'
 import { fetchAudios } from '../api/client.js'
 import ProtocolPlayer from './ProtocolPlayer.jsx'
 import UniverseAsk from './UniverseAsk.jsx'
@@ -127,6 +127,7 @@ export default function GuidedFlow() {
   const [suggestedCura, setSuggestedCura] = useState(false)
   const [beliefStep, setBeliefStep] = useState(null)
   const [sessionSeed, setSessionSeed] = useState(() => Math.floor(Math.random() * 99999))
+  const [sessionDecree, setSessionDecree] = useState(null)
 
   useEffect(() => {
     fetchAudios().then(setAudios)
@@ -152,6 +153,7 @@ export default function GuidedFlow() {
     setReflectFeeling(null)
     setBeliefStep(null)
     setSessionSeed(Math.floor(Math.random() * 99999))
+    setSessionDecree(null)
   }
 
   function goCalm() {
@@ -230,13 +232,12 @@ export default function GuidedFlow() {
   }
 
   function beliefEscolha() {
+    if (winnerNeed) setSessionDecree(pickFreshDecree(winnerNeed))
     setBeliefStep(2)
   }
 
   function currentDecree() {
-    if (!winnerNeed) return null
-    const bank = decreeBankForNeed(winnerNeed, 60)
-    return bank[sessionSeed % bank.length] || bank[0]
+    return sessionDecree
   }
 
   function playCuraSuggestion() {

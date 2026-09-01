@@ -1,3 +1,66 @@
+const NEED_CATEGORIES = {
+  seguranca: {
+    id: 'seguranca',
+    label: 'Segurança',
+    emoji: '🛡️',
+    intro: 'Perguntas para expandir a consciência sobre segurança, paz no corpo e confiança na vida.',
+    topics: [
+      'a minha segurança', 'o meu corpo em paz', 'a minha confiança na vida',
+      'o que me faz sentir protegida', 'o meu direito de baixar a guarda',
+      'a paz que já existe em mim', 'o chão firme debaixo dos meus pés',
+      'a forma como eu me protejo', 'o que eu solto quando me sinto segura',
+      'a minha capacidade de estar em paz agora', 'o alerta que eu não preciso mais',
+      'a segurança que começa em mim', 'o que o meu corpo pede para se sentir seguro',
+      'a liberdade de não viver em alerta', 'o meu lugar seguro dentro de mim'
+    ]
+  },
+  pertencimento: {
+    id: 'pertencimento',
+    label: 'Pertencimento',
+    emoji: '🤝',
+    intro: 'Perguntas para expandir a consciência sobre pertencer, ter lugar e se incluir.',
+    topics: [
+      'o meu lugar no mundo', 'o meu pertencimento', 'a forma como eu me incluo',
+      'o que me faz sentir em casa', 'a minha liberdade de ser eu entre os outros',
+      'o acolhimento que eu mereço', 'o meu direito de ocupar espaço',
+      'a mesa onde eu já tenho lugar', 'o que eu solto quando sei que pertenço',
+      'a minha capacidade de pertencer a mim mesma', 'os laços que me sustentam',
+      'o que eu escolho não repetir para caber', 'a paz de ter o meu lugar',
+      'a forma como eu me recebo', 'o pertencimento que começa em mim'
+    ]
+  },
+  reconhecimento: {
+    id: 'reconhecimento',
+    label: 'Reconhecimento',
+    emoji: '🌟',
+    intro: 'Perguntas para expandir a consciência sobre valor, visibilidade e merecimento.',
+    topics: [
+      'o meu valor', 'a forma como eu me vejo', 'o reconhecimento que começa em mim',
+      'o que eu já faço e ainda não honro', 'a minha luz', 'o meu merecimento',
+      'a imagem que eu carrego de mim', 'o que eu ousaria se o meu valor já fosse certo',
+      'a minha voz verdadeira', 'o que eu adio por medo de não ser vista',
+      'a forma como eu me cobro', 'o meu direito de ser reconhecida',
+      'o valor que não depende do que eu faço', 'a mulher que eu sou quando me vejo',
+      'o que muda quando eu me reconheço primeiro'
+    ]
+  },
+  amada: {
+    id: 'amada',
+    label: 'Ser amada',
+    emoji: '💗',
+    intro: 'Perguntas para expandir a consciência sobre amor, afeto e se deixar amar.',
+    topics: [
+      'o amor que começa em mim', 'a forma como eu me amo', 'o amor que eu mereço',
+      'a minha capacidade de receber amor', 'o que eu solto quando me sinto amada',
+      'a minha abertura para me deixar amar', 'o carinho que eu me dou',
+      'o jeito como o amor chega até mim', 'o que ainda fica de mim nas relações',
+      'a paz que o amor me traz', 'o meu direito de ser amada como eu sou',
+      'a forma como eu escolho o amor', 'o afeto que o meu corpo pede',
+      'o que eu faria se já me soubesse amada', 'o amor que eu já sou'
+    ]
+  }
+}
+
 const CATEGORIES = [
   {
     id: 'amor',
@@ -145,7 +208,25 @@ const OPENINGS = [
   ''
 ]
 
+export const NEED_TO_UNIVERSE = {
+  seguranca: 'seguranca',
+  segura: 'seguranca',
+  pertencimento: 'pertencimento',
+  pertencer: 'pertencimento',
+  reconhecimento: 'reconhecimento',
+  reconhecida: 'reconhecimento',
+  amada: 'amada'
+}
+
 export const UNIVERSE_CATEGORIES = CATEGORIES.map(({ id, label, emoji, intro }) => ({ id, label, emoji, intro }))
+
+export function universeCategoryById(id) {
+  const needCat = NEED_CATEGORIES[id]
+  if (needCat) {
+    return { id: needCat.id, label: needCat.label, emoji: needCat.emoji, intro: needCat.intro }
+  }
+  return CATEGORIES.find((c) => c.id === id) || null
+}
 
 function shuffle(list) {
   const arr = [...list]
@@ -179,7 +260,7 @@ function saveSeen() {
 }
 
 function buildPool(catId) {
-  const cat = CATEGORIES.find((c) => c.id === catId)
+  const cat = NEED_CATEGORIES[catId] || CATEGORIES.find((c) => c.id === catId)
   if (!cat) return []
   const pool = []
   for (const opening of OPENINGS) {
@@ -197,19 +278,27 @@ function freshFrom(catIds, excludeSeen) {
   return shuffle(pool.filter((q) => !excludeSeen.has(q)))
 }
 
-export function questionsForCategory(catId, count = 3) {
+export function questionsForCategory(catId, count = 3, options = {}) {
   loadSeen()
+  const lock = Boolean(options.lock) || Boolean(NEED_CATEGORIES[catId])
   const mainPool = buildPool(catId)
   const fresh = shuffle(mainPool.filter((q) => !seen.has(q)))
   let picked = fresh.slice(0, count)
-  if (picked.length < count) {
+  if (picked.length < count && !lock) {
     const otherIds = CATEGORIES.map((c) => c.id).filter((id) => id !== catId)
     const supplement = freshFrom(otherIds, seen)
     picked = picked.concat(supplement.slice(0, count - picked.length))
+  } else if (picked.length < count) {
+    picked = picked.concat(shuffle(mainPool).slice(0, count - picked.length))
   }
   picked.forEach((q) => seen.add(q))
   saveSeen()
   return picked
+}
+
+export function questionsForNeed(needId, count = 3) {
+  const catId = NEED_TO_UNIVERSE[needId] || needId
+  return questionsForCategory(catId, count, { lock: true })
 }
 
 export function nextQuestion(catId) {

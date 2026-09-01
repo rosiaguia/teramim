@@ -2,7 +2,7 @@ import { EMOTION_MAP } from '../data/emotions.js'
 import { NEEDS, NEEDS_TEST, NEED_PROTOCOLS } from '../data/needs.js'
 import { pickLawFor } from '../data/universalLaws.js'
 import { RESP_LIBRARY } from '../data/respLibrary.js'
-import { decreeBankForNeed, decreeAt, generateDecree } from '../data/decrees.js'
+import { pickFreshDecree } from '../data/decrees.js'
 
 const HOUR = new Date().getHours()
 
@@ -481,8 +481,7 @@ Depois, pergunte a verdade de quem ela é: essa crença é minha ou aprendi a t�
       const n = s.need && NEEDS[s.need]
       s.newBelief = newBelief
       const needId = s.need || 'amada'
-      const bank = decreeBankForNeed(needId)
-      const decree = decreeAt(bank, Math.floor(Math.random() * 8))
+      const decree = pickFreshDecree(needId)
       msgs.push(bot(name(`"${newBelief}". Vou repetir junto com você: ${newBelief}.
 
 ${n && n.affirmation ? `E essa é a frase que você vai usar no seu dia a partir de agora: "${n.affirmation}". Repita em voz alta, com a mão no coração.` : ''}
@@ -548,7 +547,7 @@ E decrete comigo, em voz alta:
 
     case 'love_decrees': {
       const needId = s.need || 'amada'
-      const decree = generateDecree(Math.floor(Math.random() * 1000), needId)
+      const decree = pickFreshDecree(needId)
       msgs.push(bot(name(`"Eu sinto amor. Eu te abençoo. Eu te amo. Eu sou grata."
 
 E, para você levar o amor para o seu dia, este é o seu decreto de luz:

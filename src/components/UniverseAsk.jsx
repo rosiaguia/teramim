@@ -1,12 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { UNIVERSE_CATEGORIES, questionsForCategory } from '../data/universeQuestions.js'
-
-const NEED_TO_CATEGORY = {
-  seguranca: 'espiritualidade',
-  pertencimento: 'familia',
-  reconhecimento: 'proposito',
-  amada: 'amor'
-}
+import { UNIVERSE_CATEGORIES, NEED_TO_UNIVERSE, questionsForCategory, universeCategoryById } from '../data/universeQuestions.js'
 
 const WHY_ASK = {
   title: 'Por que perguntar?',
@@ -23,9 +16,10 @@ const SINGLE_INSTRUCTION = [
 ]
 
 export default function UniverseAsk({ onClose, onTake, single = false, needId = null }) {
-  const initialCat = single && needId ? NEED_TO_CATEGORY[needId] : null
+  const lockedNeed = single && needId ? (NEED_TO_UNIVERSE[needId] || needId) : null
+  const initialCat = lockedNeed
   const [catId, setCatId] = useState(initialCat)
-  const [qList, setQList] = useState(() => (initialCat ? questionsForCategory(initialCat, 3) : []))
+  const [qList, setQList] = useState(() => (initialCat ? questionsForCategory(initialCat, 3, { lock: true }) : []))
   const [qIdx, setQIdx] = useState(0)
   const modalRef = useRef(null)
   const overlayRef = useRef(null)
@@ -53,7 +47,7 @@ export default function UniverseAsk({ onClose, onTake, single = false, needId = 
       if (pending) cancelAnimationFrame(pending)
     }
   }, [catId, qIdx])
-  const cat = UNIVERSE_CATEGORIES.find((c) => c.id === catId)
+  const cat = universeCategoryById(catId)
 
   function openCat(id) {
     setCatId(id)
@@ -95,7 +89,7 @@ export default function UniverseAsk({ onClose, onTake, single = false, needId = 
           </>
         ) : (
           <>
-            {single && <button className="universe-back" onClick={() => setCatId(null)}>← Trocar de tema</button>}
+            {single && !lockedNeed && <button className="universe-back" onClick={() => setCatId(null)}>← Trocar de tema</button>}
             <span className="chip">{cat.emoji} {cat.label}</span>
             <h3 className="universe-title">Pergunta {qIdx + 1} de {qList.length}</h3>
             <div className="universe-q-card">
