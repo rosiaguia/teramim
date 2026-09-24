@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getAllUsers, getAccesses, getSubscriptions, getCheckoutUrl, setCheckoutUrl, setAdminPin, getAdminPin, updateCurrentUser } from '../engine/store.js'
-import { fetchConfig, saveAiConfig, saveCheckoutUrl, loginAdmin, changeAdminPin, fetchSubscribers } from '../api/client.js'
+import { fetchConfig, saveAiConfig, saveCheckoutUrl, loginAdmin, changeAdminPin, fetchSubscribers, fetchSubscriptions } from '../api/client.js'
 import AudioUpload from '../components/AudioUpload.jsx'
 import LogoUpload from '../components/LogoUpload.jsx'
 import ContentEditor from '../components/ContentEditor.jsx'
@@ -61,11 +61,19 @@ function Dashboard() {
   const subs = getSubscriptions()
   const [paidSubs, setPaidSubs] = useState([])
   const [paidLoaded, setPaidLoaded] = useState(false)
+  const [subsList, setSubsList] = useState([])
+  const [subsCounts, setSubsCounts] = useState({ total: 0, active: 0, expiring: 0, expired: 0, renewed: 0 })
+  const [subsLoaded, setSubsLoaded] = useState(false)
 
   useEffect(() => {
     fetchSubscribers(getAdminPin()).then((list) => {
       setPaidSubs(list)
       setPaidLoaded(true)
+    })
+    fetchSubscriptions(getAdminPin()).then(({ list, counts }) => {
+      setSubsList(list)
+      setSubsCounts(counts)
+      setSubsLoaded(true)
     })
   }, [])
 
@@ -192,6 +200,57 @@ function Dashboard() {
           </div>
         </section>
       </div>
+
+      <section className="card admin-table">
+        <h3>Assinaturas e renovação</h3>
+        {!subsLoaded ? (
+          <p className="empty">Buscando assinaturas...</p>
+        ) : subsList.length === 0 ? (
+          <p className="empty">Nenhuma assinatura registrada ainda.</p>
+        ) : (
+          <>
+            <div className="page-breakdown" style={{ marginBottom: 10 }}>
+              <span className="chip">Ativas: {subsCounts.active}</span>
+              <span className="chip">Vencendo: {subsCounts.expiring}</span>
+              <span className="chip">Vencidas: {subsCounts.expired}</span>
+              <span className="chip">Já renovaram: {subsCounts.renewed}</span>
+            </div>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Plano</th>
+                    <th>Renovações</th>
+                    <th>Liberado em</th>
+                    <th>Vence em</th>
+                    <th>Dias</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subsList.map((s) => (
+                    <tr key={s.email}>
+                      <td>
+                        <div>{s.name || '— sem nome —'}</div>
+                        <small className="settings-sub">{s.email}</small>
+                      </td>
+                      <td>{s.plan || 'mensal'}</td>
+                      <td>{s.renewals || 0}</td>
+                      <td>{s.grantedAt ? new Date(s.grantedAt).toLocaleDateString('pt-BR') : '—'}</td>
+                      <td>{s.expiresAt ? new Date(s.expiresAt).toLocaleDateString('pt-BR') : '—'}</td>
+                      <td>{s.daysLeft !== null && s.daysLeft !== undefined ? s.daysLeft : '—'}</td>
+                      <td>
+                        <span className={s.status === 'ativa' ? 'badge ok' : s.status === 'vencendo' ? 'badge' : 'badge'}>{s.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
 
       <section className="card admin-table">
         <h3>Acessos recentes</h3>

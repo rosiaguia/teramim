@@ -217,3 +217,17 @@ export async function fetchSubscribers(pin) {
     return []
   }
 }
+
+export async function fetchSubscriptions(pin) {
+  try {
+    const r = await fetch(`/api/subscriptions?pin=${encodeURIComponent(pin)}`)
+    if (!r.ok) return { list: [], counts: { total: 0, active: 0, expiring: 0, expired: 0, renewed: 0 } }
+    const data = await r.json()
+    return {
+      list: Array.isArray(data.list) ? data.list : [],
+      counts: data.counts || { total: 0, active: 0, expiring: 0, expired: 0, renewed: 0 }
+    }
+  } catch (e) {
+    return { list: [], counts: { total: 0, active: 0, expiring: 0, expired: 0, renewed: 0 } }
+  }
+}

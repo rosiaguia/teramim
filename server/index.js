@@ -89,15 +89,20 @@ function grantAccessByEmail(email, meta = {}) {
   const reg = readAccessRegistry()
   const prev = reg[key] || {}
   const now = Date.now()
+  const wasActive = Boolean(prev.access && prev.grantedAt)
   let base = prev.expiresAt ? Date.parse(prev.expiresAt) : now
   if (isNaN(base) || base < now) base = now
+  const stamp = new Date().toISOString()
   reg[key] = {
     ...prev,
     ...meta,
     email: key,
     access: true,
-    grantedAt: prev.grantedAt || new Date().toISOString(),
-    expiresAt: new Date(base + SUBSCRIPTION_DAYS * 86400000).toISOString()
+    grantedAt: prev.grantedAt || stamp,
+    expiresAt: new Date(base + SUBSCRIPTION_DAYS * 86400000).toISOString(),
+    firstGrantedAt: prev.firstGrantedAt || stamp,
+    lastRenewedAt: wasActive ? stamp : (prev.lastRenewedAt || ''),
+    renewals: wasActive ? (prev.renewals || 0) + 1 : (prev.renewals || 0)
   }
   writeAccessRegistry(reg)
 }
@@ -464,6 +469,47 @@ app.get('/api/subscribers', (req, res) => {
     .map((s) => ({ ...s, daysLeft: daysLeft(s) }))
     .sort((a, b) => String(b.grantedAt || '').localeCompare(String(a.grantedAt || '')))
   res.json({ list })
+})
+
+app.get('/api/subscriptions', (req, res) => {
+  const { pin } = req.query || {}
+  if (pin !== getAdminPin()) {
+    return res.status(401).json({ error: 'PIN inválido' })
+  }
+  const reg = readAccessRegistry()
+  const list = Object.values(reg).map((s) => {
+    const exp = effectiveExpiry(s)
+    const dl = s.access ? daysLeft(s) : null
+    let status = 'ativa'
+    if (!s.access) status = s.revokedAt ? 'cancelada' : 'inativa'
+    else if (isExpired(s)) status = 'vencida'
+    else if (dl !== null && dl <= RENEWAL_NOTICE_DAYS) status = 'vencendo'
+    return {
+      email: s.email || '',
+      name: s.name || '',
+      plan: s.plan || 'mensal',
+      product: s.product || '',
+      status,
+      grantedAt: s.grantedAt || '',
+      firstGrantedAt: s.firstGrantedAt || s.grantedAt || '',
+      expiresAt: exp ? new Date(exp).toISOString() : '',
+      daysLeft: dl,
+      renewals: s.renewals || 0,
+      lastRenewedAt: s.lastRenewedAt || '',
+      lastEvent: s.lastEvent || '',
+      lastOrderId: s.lastOrderId || '',
+      lastStatus: s.lastStatus || '',
+      revokedAt: s.revokedAt || ''
+    }
+  }).sort((a, b) => String(b.grantedAt || '').localeCompare(String(a.grantedAt || '')))
+  const counts = {
+    total: list.length,
+    active: list.filter((s) => s.status === 'ativa' || s.status === 'vencendo').length,
+    expiring: list.filter((s) => s.status === 'vencendo').length,
+    expired: list.filter((s) => s.status === 'vencida').length,
+    renewed: list.filter((s) => s.renewals > 0).length
+  }
+  res.json({ list, counts })
 })
 
 app.put('/api/ai-config', (req, res) => {
