@@ -31,7 +31,8 @@ export default function RenewalBanner() {
         <span className="renewal-banner-icone">✨</span>
         <p className="renewal-banner-text">
           Olá, <strong>Lindo Ser</strong>... Sua assinatura vence em <strong>{days} {days === 1 ? 'dia' : 'dias'}</strong>.
-          Renove para continuar seu espaço de paz sem interrupção.
+          Se você paga no cartão, a renovação é automática — não precisa fazer nada.
+          Se paga por Pix ou boleto, toque em Renovar agora para continuar seu espaço de paz sem interrupção.
         </p>
         {url ? (
           <a className="btn btn-lime btn-sm" href={url} target="_blank" rel="noreferrer">
