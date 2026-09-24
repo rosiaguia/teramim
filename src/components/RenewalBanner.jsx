@@ -19,7 +19,6 @@ export default function RenewalBanner() {
 
   if (!info || !info.access || !info.expiringSoon) return null
 
-  const name = (info.name || '').split(' ')[0] || 'Querida'
   const days = info.daysLeft
 
   return (
@@ -27,7 +26,7 @@ export default function RenewalBanner() {
       <div className="renewal-banner-inner">
         <span className="renewal-banner-icone">✨</span>
         <p className="renewal-banner-text">
-          Olá, <strong>{name}</strong>! Sua assinatura vence em <strong>{days} {days === 1 ? 'dia' : 'dias'}</strong>.
+          Olá, <strong>Lindo Ser</strong>... Sua assinatura vence em <strong>{days} {days === 1 ? 'dia' : 'dias'}</strong>.
           Renove para continuar seu espaço de paz sem interrupção.
         </p>
         <a className="btn btn-lime btn-sm" href={getCheckoutUrl()} target="_blank" rel="noreferrer">
