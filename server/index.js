@@ -24,6 +24,7 @@ const ADMIN_CONFIG_FILE = path.join(DATA_DIR, 'admin-config.json')
 const CHECKOUT_CONFIG_FILE = path.join(DATA_DIR, 'checkout-config.json')
 const ACCESS_FILE = path.join(DATA_DIR, 'access-registry.json')
 const WEBHOOK_LOG_FILE = path.join(DATA_DIR, 'webhook-log.json')
+const PROCESSED_WEBHOOKS_FILE = path.join(DATA_DIR, 'processed-webhooks.json')
 const KIWIFY_WEBHOOK_SECRET = process.env.KIWIFY_WEBHOOK_SECRET || ''
 const SUBSCRIPTION_DAYS = Number(process.env.SUBSCRIPTION_DAYS || 30)
 const RENEWAL_NOTICE_DAYS = 3
@@ -108,6 +109,35 @@ function revokeAccessByEmail(email) {
   if (reg[key]) {
     reg[key] = { ...reg[key], access: false, revokedAt: new Date().toISOString() }
     writeAccessRegistry(reg)
+  }
+}
+
+function markAccessStatus(email, status, meta = {}) {
+  const key = String(email || '').toLowerCase().trim()
+  if (!key || !key.includes('@')) return
+  const reg = readAccessRegistry()
+  if (!reg[key]) return
+  reg[key] = { ...reg[key], ...meta, lastStatus: status, lastStatusAt: new Date().toISOString() }
+  writeAccessRegistry(reg)
+}
+
+function readProcessedWebhooks() {
+  try {
+    const raw = fs.readFileSync(PROCESSED_WEBHOOKS_FILE, 'utf8')
+    const arr = JSON.parse(raw)
+    return Array.isArray(arr) ? arr : []
+  } catch (e) {
+    return []
+  }
+}
+
+function rememberProcessedWebhook(hash) {
+  try {
+    const arr = readProcessedWebhooks()
+    arr.push(hash)
+    fs.writeFileSync(PROCESSED_WEBHOOKS_FILE, JSON.stringify(arr.slice(-300), null, 2))
+  } catch (e) {
+    console.error('processed webhook save error', e.message)
   }
 }
 
@@ -291,8 +321,18 @@ app.post('/api/kiwify/webhook', (req, res) => {
   if (!okSig) {
     return res.status(401).json({ error: 'Assinatura inválida' })
   }
+
+  const eventHash = crypto.createHash('sha1').update(raw).digest('hex')
+  const processed = readProcessedWebhooks()
+  if (processed.includes(eventHash)) {
+    console.log('kiwify webhook duplicado ignorado', event, email)
+    return res.json({ ok: true, handled: true, duplicate: true })
+  }
+  rememberProcessedWebhook(eventHash)
+
   const product = kiwifyProductName(data)
-  const plan = body.subscription ? 'mensal' : (product ? product : 'mensal')
+  const orderId = String(data.order_id || data.orderId || (data.order && data.order.id) || data.id || '')
+  const plan = (body.subscription || data.subscription) ? 'mensal' : (product ? product : 'mensal')
 
   if (!email) {
     console.log('kiwify webhook sem e-mail', event)
@@ -308,11 +348,28 @@ app.post('/api/kiwify/webhook', (req, res) => {
     status === 'cancelled' ||
     status === 'cancelled_subscription' ||
     status === 'chargeback' ||
+    status === 'dispute' ||
+    status === 'rejected' ||
+    status === 'refused' ||
+    status === 'expired' ||
+    status === 'suspended' ||
     evt.includes('refund') ||
     evt.includes('cancel') ||
     evt.includes('chargeback') ||
-    evt.includes('failed') ||
-    evt.includes('overdue')
+    evt.includes('dispute') ||
+    evt.includes('rejected') ||
+    evt.includes('refused') ||
+    evt.includes('expired') ||
+    evt.includes('suspended')
+  const pending =
+    status === 'late' ||
+    status === 'past_due' ||
+    status === 'unpaid' ||
+    status === 'waiting_payment' ||
+    status === 'in_analysis' ||
+    evt.includes('late') ||
+    evt.includes('past_due') ||
+    evt.includes('unpaid')
   const grants =
     status === 'paid' ||
     status === 'approved' ||
@@ -323,13 +380,17 @@ app.post('/api/kiwify/webhook', (req, res) => {
     evt.includes('released') ||
     evt.includes('confirmed') ||
     evt.includes('charged') ||
-    evt.includes('renewed')
+    evt.includes('renewed') ||
+    evt.includes('reactivated')
 
   if (revokes) {
     revokeAccessByEmail(email)
     console.log('kiwify REVOKE', email, event, status)
+  } else if (pending) {
+    markAccessStatus(email, 'pendente', { lastEvent: event })
+    console.log('kiwify PENDENTE (aguardando pagamento)', email, event, status)
   } else if (grants) {
-    grantAccessByEmail(email, { plan, product, name: kiwifyCustomerName(data), lastEvent: event, lastOrderId: data.order_id || data.id || data.orderId || '' })
+    grantAccessByEmail(email, { plan, product, name: kiwifyCustomerName(data), lastEvent: event, lastOrderId: orderId })
     console.log('kiwify GRANT', email, event, status)
   } else {
     console.log('kiwify webhook ignorado', event, status, email)
