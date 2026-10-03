@@ -28,9 +28,21 @@ const PROCESSED_WEBHOOKS_FILE = path.join(DATA_DIR, 'processed-webhooks.json')
 const KIWIFY_WEBHOOK_SECRET = process.env.KIWIFY_WEBHOOK_SECRET || ''
 const SUBSCRIPTION_DAYS = Number(process.env.SUBSCRIPTION_DAYS || 30)
 const RENEWAL_NOTICE_DAYS = 3
+const OWNER_EMAIL = 'rosi1088@outlook.com'
+const OWNER_PASSWORD = '0707'
+
+function isOwnerEmail(email) {
+  return String(email || '').toLowerCase().trim() === OWNER_EMAIL
+}
+
+function isLifetime(entry) {
+  if (!entry) return false
+  return Boolean(entry.lifetime) || entry.plan === 'vitalicio' || isOwnerEmail(entry.email)
+}
 
 function effectiveExpiry(entry) {
   if (!entry) return null
+  if (isLifetime(entry)) return null
   if (entry.expiresAt) return Date.parse(entry.expiresAt)
   if (entry.grantedAt) return Date.parse(entry.grantedAt) + SUBSCRIPTION_DAYS * 86400000
   return null
@@ -38,6 +50,7 @@ function effectiveExpiry(entry) {
 
 function isExpired(entry) {
   if (!entry || !entry.access) return false
+  if (isLifetime(entry)) return false
   const exp = effectiveExpiry(entry)
   if (!exp) return false
   return exp < Date.now()
@@ -45,6 +58,7 @@ function isExpired(entry) {
 
 function daysLeft(entry) {
   if (!entry) return null
+  if (isLifetime(entry)) return null
   const exp = effectiveExpiry(entry)
   if (!exp) return null
   const ms = exp - Date.now()
@@ -93,6 +107,23 @@ function grantAccessByEmail(email, meta = {}) {
   let base = prev.expiresAt ? Date.parse(prev.expiresAt) : now
   if (isNaN(base) || base < now) base = now
   const stamp = new Date().toISOString()
+  if (isOwnerEmail(key) || isLifetime(prev)) {
+    reg[key] = {
+      ...prev,
+      ...meta,
+      email: key,
+      access: true,
+      lifetime: true,
+      plan: 'vitalicio',
+      grantedAt: prev.grantedAt || stamp,
+      expiresAt: '',
+      firstGrantedAt: prev.firstGrantedAt || stamp,
+      lastRenewedAt: wasActive ? stamp : (prev.lastRenewedAt || ''),
+      renewals: wasActive ? (prev.renewals || 0) + 1 : (prev.renewals || 0)
+    }
+    writeAccessRegistry(reg)
+    return
+  }
   reg[key] = {
     ...prev,
     ...meta,
@@ -110,6 +141,7 @@ function grantAccessByEmail(email, meta = {}) {
 function revokeAccessByEmail(email) {
   const key = String(email || '').toLowerCase().trim()
   if (!key || !key.includes('@')) return
+  if (isOwnerEmail(key)) return
   const reg = readAccessRegistry()
   if (reg[key]) {
     reg[key] = { ...reg[key], access: false, revokedAt: new Date().toISOString() }
@@ -176,6 +208,31 @@ function verifyLogin(email, password) {
   if (hashPassword(String(password || ''), entry.pwdSalt) !== entry.pwdHash) return { access: false, reason: 'wrong_password' }
   return { access: true, name: entry.name || '', expiresAt: entry.expiresAt || '', daysLeft: daysLeft(entry) }
 }
+
+function ensureOwnerAccess() {
+  const key = OWNER_EMAIL
+  const reg = readAccessRegistry()
+  const prev = reg[key] || {}
+  const stamp = new Date().toISOString()
+  const salt = crypto.randomBytes(16).toString('hex')
+  reg[key] = {
+    ...prev,
+    email: key,
+    name: prev.name || 'Rosi Aguiar',
+    access: true,
+    lifetime: true,
+    plan: 'vitalicio',
+    grantedAt: prev.grantedAt || stamp,
+    expiresAt: '',
+    firstGrantedAt: prev.firstGrantedAt || stamp,
+    lastEvent: 'owner_lifetime',
+    pwdSalt: salt,
+    pwdHash: hashPassword(OWNER_PASSWORD, salt)
+  }
+  writeAccessRegistry(reg)
+}
+
+ensureOwnerAccess()
 
 function verifyKiwifySignature(req, rawBody) {
   if (!KIWIFY_WEBHOOK_SECRET) return true
